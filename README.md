@@ -271,28 +271,59 @@ The skill **adapts its options contextually** based on what was just completed:
 
 ## Steering (Mid-Task Instructions)
 
-Send instructions to the agent **while it's working** without interrupting the current task:
+Send instructions to the agent **while it's working** without interrupting the current task.
+
+### Cursor IDE
+
+**Option 1: Keyboard shortcut**
+- Press `Ctrl+Shift+S` (or `Cmd+Shift+S` on Mac)
+- Type your steering message
+- Press Enter
+
+**Option 2: Status bar button**
+- Click the "🔊 Steer" button in the bottom status bar
+- Type your steering message
+
+### Cursor CLI / Terminal
 
 ```bash
-# From terminal
+# Direct command
 steer "focus on the API layer"
 steer "skip tests, just implement"
-steer --popup   # Interactive tmux popup
 
-# From Cursor IDE
-# Press Ctrl+Shift+S or click "Steer" button in status bar
+# Interactive popup (requires tmux)
+steer --popup
+
+# Check pending steering
+steer --status
+
+# Clear pending steering
+steer --clear
 ```
 
-The steering message will be injected at the next Shell tool call. The agent sees the message as part of tool output and adjusts its behavior accordingly.
+### tmux Integration
 
-**How it works:**
+If you're using tmux, add this to `~/.tmux.conf`:
+
+```bash
+# Press prefix + S to open steering popup
+bind-key S run-shell "~/.durable-request/bin/steer --popup"
+```
+
+Then reload: `tmux source-file ~/.tmux.conf`
+
+### How It Works
+
 1. User sends steering via CLI, tmux popup, or Cursor extension
 2. Message is saved to `~/.durable-request/data/steering-message`
 3. `preToolUse` hook reads the file before each Shell command
-4. Hook modifies the command to include `echo "[STEERING] ..." &&` prefix
-5. Agent sees the steering message in the command output
+4. Hook modifies the command to include the steering message as output
+5. Agent sees the steering in Shell output and **must acknowledge it**
 
-**Note:** Due to Cursor bugs, `additionalContext` and `agent_message` do not surface to the model. The workaround injects steering into Shell command output, which **is** visible to the model.
+**Important:** The agent is instructed to acknowledge steering with:
+> **[durable-request]** Received steering: "your message". Adjusting...
+
+**Note:** Due to Cursor hook limitations, steering only appears in Shell tool output. If the agent is only using Read/Write/Grep tools, steering remains pending until the next Shell call.
 
 ---
 
@@ -321,51 +352,19 @@ Skills with their own continuation logic (tuning sweeps, FSM engines, etc.) take
 
 ---
 
-## Reproducing the A/B Test
+## Testing Framework
 
-The full experimental methodology is documented in [`data/session-history-meta-prompt.md`](data/session-history-meta-prompt.md):
-
-- Exact prompt templates for control and treatment groups
-- All task descriptions across 3 scenarios
-- Statistical analysis methodology
-- A **reusable template** for A/B testing any agent skill
+The `testing/` directory contains the new testing framework:
 
 ```bash
-# Quick verification — parse Epoch 1 results (102 agents)
-cat data/all-results.jsonl | python3 -c "
-import json, sys
-results = [json.loads(l) for l in sys.stdin]
-control = [r for r in results if r['group'] == 'control']
-treatment = [r for r in results if r['group'] == 'treatment']
-print(f'Epoch 1 - Control: {sum(r[\"offered_continuation\"] for r in control)}/{len(control)}')
-print(f'Epoch 1 - Treatment: {sum(r[\"offered_continuation\"] for r in treatment)}/{len(treatment)}')
-"
+# Analyze test session transcripts
+python testing/scripts/analyze.py testing/results/run-YYYY-MM-DD/
 
-# Parse Epoch 2 results (60 agents)
-cat data/epoch-2026-04-11/results/all-results.jsonl | python3 -c "
-import json, sys
-results = [json.loads(l) for l in sys.stdin]
-control = [r for r in results if r['group'] == 'control']
-treatment = [r for r in results if r['group'] == 'treatment']
-print(f'Epoch 2 - Control: {sum(r[\"offered_continuation\"] for r in control)}/{len(control)}')
-print(f'Epoch 2 - Treatment: {sum(r[\"offered_continuation\"] for r in treatment)}/{len(treatment)}')
-"
+# Run checkpoint simulation
+python testing/scripts/checkpoint_cli.py test-suite
 ```
 
-### Checkpoint Harness
-
-A CLI harness is included for automated testing of checkpoint format and reliability:
-
-```bash
-# Run the full test suite
-python3 harness/checkpoint_cli.py test-suite
-
-# Simulate 20 consecutive checkpoints
-python3 harness/checkpoint_cli.py batch --count 20 --auto-respond continue
-
-# Verify a transcript file matches the checkpoint format
-python3 harness/checkpoint_cli.py verify --file output.txt
-```
+See [testing/README.md](testing/README.md) for workload definitions and feature verification patterns.
 
 ---
 
@@ -375,39 +374,32 @@ python3 harness/checkpoint_cli.py verify --file output.txt
 durable-request/
 ├── README.md                          # This file
 ├── install.md                         # LLM-readable installation guide
+├── install-steering.sh                # One-click Cursor steering installer
+├── CHANGELOG.md                       # Version history
 ├── skill/
 │   ├── SKILL.md                       # The skill (copy to install)
 │   ├── checkpoint.sh                  # CLI checkpoint tool (tmux split-pane)
-│   └── checkpoint-ui.sh              # UI script (runs inside tmux pane)
-├── patches/
-│   ├── FAILURE-SUMMARY.md             # Stop hook attempt analysis
-│   └── cursor-cli-hook-attempt.patch  # Preserved patch for reference
-├── harness/
-│   └── checkpoint_cli.py          # CLI tool for automated checkpoint testing
-└── data/
-    ├── all-results.jsonl              # Epoch 1: 102 structured A/B test results
-    ├── final-statistics.md            # Epoch 1: Statistical analysis
-    ├── experiment-design.md           # Full design with all prompts
-    ├── session-history-meta-prompt.md # Methodology + reusable A/B template
-    ├── ab-test-raw-results.md         # Pilot test (n=6) transcripts
-    ├── ab-test-statistics.md          # Pilot test statistics
-    ├── s1/                            # Epoch 1 Scenario 1: Code Generation (34 files)
-    ├── s2/                            # Epoch 1 Scenario 2: Analysis & Research (34 files)
-    ├── s3/                            # Epoch 1 Scenario 3: File Manipulation (34 files)
-    ├── epoch-2026-04-11/              # Epoch 2: Updated skill validation
-    │   ├── results/
-    │   │   ├── all-results.jsonl      # 40 structured results
-    │   │   └── statistics.md          # Statistical analysis
-    │   ├── sA/                        # Code Generation (20 files)
-    │   ├── sB/                        # Analysis & Research (10 files)
-    │   └── sC/                        # File Manipulation (10 files)
-    └── epoch-2026-04-11-e3/           # Epoch 3: Always-on skill validation
-        ├── results/
-        │   ├── all-results.jsonl      # 28 structured results
-        │   └── statistics.md          # Statistics + contamination analysis
-        ├── sA/                        # Code Generation (14 pairs)
-        ├── sB/                        # Analysis & Research (8 pairs)
-        └── sC/                        # File Manipulation (6 pairs)
+│   ├── checkpoint-ui.sh               # UI script (runs inside tmux pane)
+│   ├── steer                          # Steering CLI tool
+│   ├── steer-ui.sh                    # Steering tmux popup UI
+│   ├── steering-hook.sh               # preToolUse hook for steering injection
+│   └── todo-cleanup.sh                # Automatic todo list cleanup
+├── testing/
+│   ├── README.md                      # Testing framework documentation
+│   ├── workloads/                     # 10 standardized test workloads
+│   │   ├── 01-simple-task.md
+│   │   ├── 02-multi-step.md
+│   │   └── ...
+│   ├── scripts/
+│   │   ├── patterns.py                # Feature detection patterns
+│   │   ├── analyze.py                 # Transcript analysis tool
+│   │   └── checkpoint_cli.py          # CLI checkpoint simulator
+│   └── results/                       # Session transcripts (gitignored)
+├── extensions/
+│   └── cursor-steer/                  # Cursor/VSCode steering extension
+├── docs/
+│   └── research/                      # Design documents and research
+└── website/                           # Product website
 ```
 
 ---
