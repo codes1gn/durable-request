@@ -1,6 +1,0 @@
-# Database connection settings (placeholders — replace for your environment)
-database:
-  host: localhost
-  port: 5432
-  dbname: app_db
-  user: app_user

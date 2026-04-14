@@ -1,6 +1,0 @@
-Root .md files (byte size, ascending):
-2048  CHANGELOG.md
-2684  install.md
-14157 README.md
----
-Total bytes (wc -c sum line): 18889

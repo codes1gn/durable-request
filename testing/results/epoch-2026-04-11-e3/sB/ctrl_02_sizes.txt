@@ -1,7 +1,0 @@
-Root .md files (byte size, descending):
-
-README.md    14157 bytes
-install.md    2684 bytes
-CHANGELOG.md  2048 bytes
-
-Total (3 files): 18889 bytes

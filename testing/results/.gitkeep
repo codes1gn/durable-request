@@ -1,0 +1,3 @@
+# This directory stores test session transcripts and analysis results
+# See ../workloads/ for test definitions
+# Run ../scripts/analyze.py <results-dir> to generate reports

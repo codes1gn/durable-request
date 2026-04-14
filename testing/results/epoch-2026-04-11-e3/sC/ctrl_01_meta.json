@@ -1,6 +1,0 @@
-{
-  "name": "durable-request",
-  "version": "1.0.1",
-  "author": "Albert (codes1gn)",
-  "description": "Get more out of every AI agent request — a continuation pattern so one request can chain multiple tasks instead of stopping after the first."
-}

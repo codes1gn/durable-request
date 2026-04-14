@@ -1,2 +1,0 @@
-File: /home/albert/durable-request/skill/SKILL.md
-Line count (wc -l): 244

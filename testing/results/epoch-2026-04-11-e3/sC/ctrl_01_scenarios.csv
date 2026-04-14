@@ -1,6 +1,0 @@
-id,name,expected_result
-S1,Fresh clone installs deps,Build completes without missing-module errors
-S2,Website dev server starts,Vite serves the site on the configured port
-S3,Invalid epoch path rejected,Tooling returns a clear error and does not write outside data/
-S4,Continuation skill present,Agent ends turns with a checkpoint when the skill is enabled
-S5,CSV scenario ingest,Parser loads five rows with id name expected_result headers intact

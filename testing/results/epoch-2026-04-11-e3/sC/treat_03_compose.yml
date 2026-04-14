@@ -1,8 +1,0 @@
-services:
-  app:
-    build:
-      context: .
-      dockerfile: treat_03_Dockerfile
-    image: treat-03-app:latest
-    init: true
-    restart: unless-stopped

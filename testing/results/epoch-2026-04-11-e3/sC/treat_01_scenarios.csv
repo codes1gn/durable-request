@@ -1,6 +1,0 @@
-id,name,precondition,action,expected_outcome
-S1,create_missing_dir,Target directory does not exist,Write JSON to nested path under data/epoch-.../sC/,Parent directories created; file bytes match schema
-S2,overwrite_idempotent,Target file already exists with older content,Rewrite treat_01_meta.json with updated fields,File replaced; JSON parses; required keys present
-S3,csv_roundtrip,CSV opened in spreadsheet tool,Edit row 3 description and save UTF-8,No delimiter breakage; 5 data rows preserved
-S4,script_executable,treat_01_sysinfo.sh mode not +x,chmod +x then run from repo root,Exit 0; stdout contains hostname and kernel line
-S5,path_with_spaces,Working directory path contains spaces (simulated quote-safe),Run script as "./treat_01_sysinfo.sh" with quoted cwd,No word-splitting errors; outputs still written
