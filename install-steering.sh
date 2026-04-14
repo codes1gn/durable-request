@@ -107,6 +107,13 @@ install_steer_ui() {
   
   chmod +x "$UI_PATH"
   log_info "Installed: $UI_PATH"
+  
+  # Clean up old location (skill/) if it exists
+  local OLD_UI_PATH="$SKILL_DIR/steer-ui.sh"
+  if [ -f "$OLD_UI_PATH" ]; then
+    rm -f "$OLD_UI_PATH"
+    log_info "Removed old location: $OLD_UI_PATH"
+  fi
 }
 
 # Install steering hook
