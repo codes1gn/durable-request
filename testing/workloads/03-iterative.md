@@ -30,7 +30,7 @@ Agent: [ends]
 
 ## Features Tested
 
-- F3: 4 fixed options
+- F3: 4 options (A/B/C + D)
 - F5: Multi-step checkpoint loop
 - F6: Durable loop (continue until Done)
 
@@ -39,7 +39,7 @@ Agent: [ends]
 ```python
 patterns = [
     r'AskQuestion',  # checkpoint present
-    r'"Continue".*"Iterate".*"Done"',  # F3
+    r'"A".*"B".*"C".*"D"',  # F3
     # Count: >= 3 checkpoints
 ]
 ```

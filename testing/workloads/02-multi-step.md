@@ -35,7 +35,7 @@ Agent: [ends]
 
 - F1: Checkpoint after task completion
 - F2: TodoWrite + AskQuestion in same batch
-- F3: 4 fixed options
+- F3: 4 options (A/B/C + D)
 - F4: Task summary in prompt
 - F5: Multi-step checkpoint loop
 - F6: Durable loop (continue until Done)
@@ -47,7 +47,7 @@ Agent: [ends]
 patterns = [
     r'TodoWrite.*durable-checkpoint.*in_progress',  # F2
     r'AskQuestion',  # F1
-    r'"Continue".*"Iterate".*"Done"',  # F3
+    r'"A".*"B".*"C".*"D"',  # F3
     # F5/F6: count checkpoint occurrences >= 3
 ]
 ```

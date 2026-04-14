@@ -16,7 +16,7 @@ def factorial(n):
 1. Agent adds docstring to the function
 2. Agent presents checkpoint with:
    - Task summary mentioning "docstring" or "factorial"
-   - 4 options: Continue, Iterate, Done, (empty)
+   - 4 options: A, B, C (context-generated), D (empty)
 3. If user selects "Done" → session ends
 4. If user selects "Iterate" → agent refines and checkpoints again
 
@@ -35,7 +35,7 @@ Agent: [ends]
 
 - F1: Checkpoint after task completion
 - F2: TodoWrite + AskQuestion in same batch
-- F3: 4 fixed options
+- F3: 4 options (A/B/C + D)
 - F4: Task summary in prompt
 - F10: No silent completion
 
@@ -45,7 +45,7 @@ Agent: [ends]
 patterns = [
     r'TodoWrite.*durable-checkpoint.*in_progress',  # F2
     r'AskQuestion',  # F1
-    r'"Continue".*"Iterate".*"Done"',  # F3
+    r'"A".*"B".*"C".*"D"',  # F3
     r'docstring|factorial',  # F4 - relevant summary
 ]
 ```

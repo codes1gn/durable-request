@@ -110,10 +110,10 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
       "id": "next_action",
       "prompt": "<1-2 sentence summary>. What would you like to do next?",
       "options": [
-        {"id": "continue", "label": "Continue"},
-        {"id": "iterate",  "label": "Iterate"},
-        {"id": "done",     "label": "Done"},
-        {"id": "custom",   "label": ""}
+        {"id": "A", "label": "<most likely next action>"},
+        {"id": "B", "label": "<second most likely action>"},
+        {"id": "C", "label": "<third most likely action>"},
+        {"id": "D", "label": ""}
       ],
       "allow_multiple": false
     }
@@ -124,7 +124,8 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
 Rules:
 
 - **Single question only** — never use multiple questions
-- **Exactly 4 options, fixed**: Continue, Iterate, Done, empty (for freeform input)
+- **Exactly 4 options**: A, B, C are context-generated likely paths; D is empty for freeform
+- Generate A/B/C based on context — predict the 3 most probable user intents
 - The `prompt` should be a 1-2 sentence summary of what was completed
 
 `AskQuestion` **blocks your turn without ending the request**. This is what makes the request "durable."
@@ -145,11 +146,11 @@ In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Questio
           "type": "radio",
           "name": "next_action",
           "label": "<1-2 sentence summary of what was completed>",
-          "options": ["Continue", "Iterate", "Done"]
+          "options": ["<A: most likely>", "<B: second likely>", "<C: third likely>"]
         },
         {
           "type": "text",
-          "name": "custom",
+          "name": "D",
           "label": ""
         }
       ]
@@ -160,7 +161,7 @@ In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Questio
 
 Rules:
 
-- **3 radio options + 1 text field** — fixed structure
+- **3 radio options + 1 text field (D)** — generate A/B/C based on context
 - The `label` in the radio field is the task summary
 - The Question Carousel **blocks the turn** until user responds
 
@@ -171,9 +172,9 @@ Rules:
 ```bash
 bash ~/.cursor/skills/durable-request/checkpoint.sh \
   "<1-2 sentence summary>. What would you like to do next?" \
-  "Continue" \
-  "Iterate" \
-  "Done"
+  "<A: most likely next action>" \
+  "<B: second most likely>" \
+  "<C: third most likely>"
 ```
 
 **Prerequisite:** cursor-agent must be running inside a tmux session. Add this alias to `~/.bashrc`:
@@ -186,8 +187,8 @@ Rules:
 
 - Call this via the **Shell** tool
 - First argument is the prompt (1-2 sentence summary)
-- **Fixed 3 options**: Continue, Iterate, Done
-- The script automatically appends an empty option for freeform input
+- **Generate 3 context-specific options** (A, B, C) — predict most likely user intents
+- The script automatically appends an empty option (D) for freeform input
 - The script returns `[durable-request] User responded: <choice>` — use this to continue
 - If tmux is not available, the script auto-selects the first option
 

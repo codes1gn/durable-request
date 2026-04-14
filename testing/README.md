@@ -33,7 +33,7 @@ testing/
 |---------|-------------|-------------|
 | F1 | Checkpoint after task completion | 10 |
 | F2 | TodoWrite + AskQuestion in same batch | 10 |
-| F3 | 4 fixed options (Continue, Iterate, Done, empty) | 10 |
+| F3 | 4 options (A/B/C context-generated + D empty) | 10 |
 | F4 | Task summary in prompt | 10 |
 | F5 | Multi-step checkpoint loop | 10 |
 | F6 | Durable loop (continue until Done) | 10 |
@@ -69,7 +69,7 @@ Key patterns to detect in transcripts:
 PATTERNS = {
     "checkpoint_call": r'AskQuestion|checkpoint\.sh|#vscode/askQuestions',
     "todowrite_call": r'TodoWrite.*durable-checkpoint.*in_progress',
-    "four_options": r'"Continue".*"Iterate".*"Done".*""',
+    "four_options": r'"id":\s*"[ABC]".*"id":\s*"D".*""',
     "task_summary": r'"prompt":\s*"[^"]{10,}',  # prompt with content
     "no_silent_end": r'(AskQuestion|checkpoint\.sh|Done|durable-checkpoint)',
     "steering_ack": r'\[durable-request\].*[Rr]eceived steering',

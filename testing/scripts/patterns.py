@@ -32,8 +32,8 @@ FEATURES = {
     ),
     "F3": Feature(
         id="F3",
-        name="4 fixed options (Continue, Iterate, Done, empty)",
-        pattern=re.compile(r'"Continue".*"Iterate".*"Done".*""', re.DOTALL),
+        name="4 options (A/B/C context-generated + D empty)",
+        pattern=re.compile(r'"id":\s*"[ABC]".*"label":\s*"[^"]+".*"id":\s*"D".*"label":\s*""', re.DOTALL),
         min_samples=10
     ),
     "F4": Feature(
