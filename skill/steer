@@ -14,8 +14,9 @@
 #   steer "stop current task, urgent bug in production"
 #   steer --popup             # Opens interactive UI in tmux
 #
-# The message will be picked up by the preToolUse hook at the next tool call
-# and injected as additionalContext to the agent.
+# The message will be picked up by the preToolUse hook at the next Shell tool call.
+# For Shell tools, the message is injected into the command output so the model sees it.
+# For other tools, the message remains pending until a Shell tool is called.
 
 set -euo pipefail
 
@@ -28,10 +29,11 @@ STEERING_HISTORY="${DURABLE_REQUEST_HISTORY_DIR:-$HOME/.durable-request/history}
 # UI script location (try multiple locations)
 UI_SCRIPT=""
 for candidate in \
-  "$SCRIPT_DIR/../skill/steer-ui.sh" \
   "$SCRIPT_DIR/steer-ui.sh" \
-  "/home/albert/workspace/durable-request/skill/steer-ui.sh" \
-  "$HOME/.durable-request/skill/steer-ui.sh"; do
+  "$SCRIPT_DIR/../skill/steer-ui.sh" \
+  "$HOME/.durable-request/bin/steer-ui.sh" \
+  "$HOME/.durable-request/skill/steer-ui.sh" \
+  "/home/albert/workspace/durable-request/skill/steer-ui.sh"; do
   if [ -f "$candidate" ]; then
     UI_SCRIPT="$candidate"
     break

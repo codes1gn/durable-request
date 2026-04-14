@@ -86,7 +86,7 @@ install_steer_cli() {
 install_steer_ui() {
   log_step "Installing steer UI (tmux popup)..."
   
-  local UI_PATH="$SKILL_DIR/steer-ui.sh"
+  local UI_PATH="$BIN_DIR/steer-ui.sh"
   
   # Check if we're running from the repo
   if [ -f "./skill/steer-ui.sh" ]; then
@@ -324,7 +324,7 @@ print_summary() {
   echo ""
   echo "Components installed:"
   echo "  ✓ steer CLI:       $BIN_DIR/steer"
-  echo "  ✓ steer UI:        $SKILL_DIR/steer-ui.sh"
+  echo "  ✓ steer UI:        $BIN_DIR/steer-ui.sh"
   echo "  ✓ Steering hook:   $HOOKS_DIR/steering-hook.sh"
   echo "  ✓ Cursor config:   $CURSOR_HOOKS_FILE"
   echo ""
