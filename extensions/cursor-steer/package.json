@@ -1,0 +1,111 @@
+{
+  "name": "durable-request-steer",
+  "displayName": "Durable Request Steering",
+  "description": "Send steering messages to AI agents mid-execution without interrupting the current task",
+  "version": "0.1.0",
+  "publisher": "durable-request",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/durable-request/durable-request"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "steering",
+    "copilot",
+    "cursor",
+    "durable-request"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "durable-request.steer",
+        "title": "Steer Agent",
+        "category": "Durable Request",
+        "icon": "$(megaphone)"
+      },
+      {
+        "command": "durable-request.clearSteering",
+        "title": "Clear Steering",
+        "category": "Durable Request"
+      },
+      {
+        "command": "durable-request.steeringStatus",
+        "title": "Steering Status",
+        "category": "Durable Request"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "durable-request.steer",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
+        "when": "editorTextFocus || !editorTextFocus"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "durable-request.steer",
+          "when": "true"
+        },
+        {
+          "command": "durable-request.clearSteering",
+          "when": "true"
+        },
+        {
+          "command": "durable-request.steeringStatus",
+          "when": "true"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Durable Request Steering",
+      "properties": {
+        "durableRequest.steeringDataDir": {
+          "type": "string",
+          "default": "",
+          "description": "Custom directory for steering data. Leave empty to use ~/.durable-request/data"
+        },
+        "durableRequest.showStatusBarButton": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Steer button in the status bar"
+        },
+        "durableRequest.notifyOnSteer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notification when steering message is queued"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.50.0",
+    "typescript": "^5.3.0"
+  }
+}
