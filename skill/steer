@@ -1,0 +1,155 @@
+#!/bin/bash
+# steer - Send steering message to durable-request agent
+#
+# Usage:
+#   steer <message>           Send a steering message
+#   steer --clear             Clear pending steering
+#   steer --status            Show pending steering
+#   steer --help              Show this help
+#
+# Examples:
+#   steer "focus on the API layer"
+#   steer "skip tests, continue with implementation"
+#   steer "stop current task, urgent bug in production"
+#
+# The message will be picked up by the preToolUse hook at the next tool call
+# and injected as additionalContext to the agent.
+
+set -euo pipefail
+
+# Configuration
+STEERING_DIR="${DURABLE_REQUEST_DATA_DIR:-$HOME/.durable-request/data}"
+STEERING_FILE="$STEERING_DIR/steering-message"
+STEERING_HISTORY="${DURABLE_REQUEST_HISTORY_DIR:-$HOME/.durable-request/history}"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+usage() {
+  cat << 'EOF'
+Usage: steer <message>
+       steer --clear
+       steer --status
+       steer --help
+
+Send a steering message to the running durable-request agent.
+The message will be processed at the next tool call.
+
+Commands:
+  <message>     Queue a steering message
+  --clear       Clear any pending steering message
+  --status      Show the current pending steering message
+  --help        Show this help
+
+Examples:
+  steer "focus on the API layer"
+  steer "skip tests, continue with implementation"  
+  steer "stop current task, urgent bug in production"
+
+Environment Variables:
+  DURABLE_REQUEST_DATA_DIR    Override steering file location
+                              (default: ~/.durable-request/data)
+
+EOF
+}
+
+log_info() {
+  echo -e "${GREEN}[steer]${NC} $1"
+}
+
+log_warn() {
+  echo -e "${YELLOW}[steer]${NC} $1"
+}
+
+log_error() {
+  echo -e "${RED}[steer]${NC} $1" >&2
+}
+
+# Ensure directory exists
+ensure_dir() {
+  mkdir -p "$STEERING_DIR"
+}
+
+# Write steering message
+write_steering() {
+  local message="$1"
+  ensure_dir
+  echo "$message" > "$STEERING_FILE"
+  
+  # Optional: log to history
+  if [ -n "${DURABLE_REQUEST_LOG_HISTORY:-}" ]; then
+    mkdir -p "$STEERING_HISTORY"
+    echo "[$(date -Iseconds)] $message" >> "$STEERING_HISTORY/steering.log"
+  fi
+}
+
+# Read pending steering
+read_steering() {
+  if [ -f "$STEERING_FILE" ]; then
+    cat "$STEERING_FILE"
+  else
+    echo ""
+  fi
+}
+
+# Clear steering
+clear_steering() {
+  if [ -f "$STEERING_FILE" ]; then
+    rm -f "$STEERING_FILE"
+    log_info "Steering cleared"
+  else
+    log_info "No pending steering to clear"
+  fi
+}
+
+# Show status
+show_status() {
+  if [ -f "$STEERING_FILE" ]; then
+    local msg
+    msg=$(cat "$STEERING_FILE")
+    log_info "Pending steering: ${BLUE}\"$msg\"${NC}"
+    log_info "Will be processed at next tool call"
+  else
+    log_info "No pending steering"
+  fi
+}
+
+# Main
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  --clear|-c)
+    clear_steering
+    exit 0
+    ;;
+  --status|-s)
+    show_status
+    exit 0
+    ;;
+  "")
+    log_error "No message provided"
+    echo ""
+    usage
+    exit 1
+    ;;
+  -*)
+    log_error "Unknown option: $1"
+    echo ""
+    usage
+    exit 1
+    ;;
+  *)
+    # Combine all arguments as the message
+    message="$*"
+    write_steering "$message"
+    log_info "Queued: ${BLUE}\"$message\"${NC}"
+    log_info "Will be processed at next tool call"
+    exit 0
+    ;;
+esac

@@ -375,6 +375,56 @@ The script outputs the cleaned list. Pass it to `TodoWrite({ todos: ..., merge: 
 └──────────────────────────────────────────────────────────────┘
 ```
 
+## Steering (Optional)
+
+Steering allows users to redirect the agent mid-execution without waiting for a checkpoint.
+
+### How Steering Works
+
+```
+User runs: steer "focus on the API layer"
+         │
+         ▼
+~/.durable-request/data/steering-message (file created)
+         │
+         ▼
+preToolUse hook detects file at next tool call
+         │
+         ▼
+Hook injects: "⚡ [USER STEERING]: focus on the API layer"
+         │
+         ▼
+Agent sees steering in context and adjusts behavior
+```
+
+### Detecting Steering Messages
+
+When steering is active, you will see a message in your context like:
+
+```
+⚡ [USER STEERING]: focus on the API layer
+```
+
+**When you see this:**
+1. Acknowledge the steering in your response
+2. Adjust your current approach based on the user's direction
+3. Continue with the modified plan
+
+**Example response:**
+
+> **[durable-request]** Received steering: "focus on the API layer". Adjusting current task — I'll prioritize the API implementation over the UI changes we were working on.
+
+### Steering Does NOT Replace Checkpoints
+
+Steering is for mid-turn adjustments. You still MUST present a checkpoint when:
+- The task is complete
+- A significant step is finished
+- You reach a natural stopping point
+
+Steering and checkpoints are complementary:
+- **Steering**: User redirects you while you're working
+- **Checkpoint**: You pause and ask what to do next
+
 ## Integration with Other Skills
 
 This skill does NOT override task-specific loop behavior. Skills with their own loop/continuation logic (e.g., tuning sweeps, FSM engines) take precedence internally. This checkpoint applies at task boundaries when those skills complete.
