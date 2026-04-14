@@ -2,6 +2,15 @@
 
 All notable changes to durable-request are documented here.
 
+## [1.2.1] - 2026-04-14
+
+### Fixed
+- `steer-ui.sh` now installs to `~/.durable-request/bin/` instead of `skill/`
+- `steer` CLI updated to prioritize `bin/` path when searching for UI script
+- `install-steering.sh` cleans up old `skill/steer-ui.sh` location during install
+- Updated `steer` header comments to reflect Shell command modification workaround
+- Improved Cursor extension install status detection in install script
+
 ## [1.2.0] - 2026-04-14
 
 ### Added
