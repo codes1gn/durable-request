@@ -387,20 +387,48 @@ Agent sees steering in context and adjusts behavior
 
 ### Detecting Steering Messages
 
-When steering is active, you will see a message in your context like:
+**CRITICAL: Steering messages appear in Shell tool output.** After every Shell tool call, scan the output for this pattern:
 
 ```
-⚡ [USER STEERING]: focus on the API layer
+╔══════════════════════════════════════════════════════════════╗
+║ ⚡ USER STEERING MESSAGE                                       ║
+╠══════════════════════════════════════════════════════════════╣
+║ <user's steering message here>                                ║
+╚══════════════════════════════════════════════════════════════╝
 ```
 
-**When you see this:**
-1. Acknowledge the steering in your response
-2. Adjust your current approach based on the user's direction
-3. Continue with the modified plan
+**When you see this in Shell output, you MUST:**
 
-**Example response:**
+1. **Immediately acknowledge** by stating: `**[durable-request]** Received steering: "<message>"`
+2. **Adjust your approach** based on the user's direction
+3. **Continue with the modified plan**
 
+**This is NOT optional.** Failing to acknowledge steering is a protocol violation.
+
+**Example:**
+
+If Shell output contains:
+```
+╔══════════════════════════════════════════════════════════════╗
+║ ⚡ USER STEERING MESSAGE                                       ║
+╠══════════════════════════════════════════════════════════════╣
+║ focus on the API layer                                        ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+Your response MUST include:
 > **[durable-request]** Received steering: "focus on the API layer". Adjusting current task — I'll prioritize the API implementation over the UI changes we were working on.
+
+### Steering Detection Protocol
+
+After **every Shell tool call**, check the output for steering:
+
+1. Look for `USER STEERING MESSAGE` or `⚡` in the output
+2. If found, extract the message content
+3. Immediately acknowledge in your next response text
+4. Adjust your plan accordingly
+
+**Non-Shell tools (Read, Write, Grep, etc.) do NOT show steering.** Steering only appears when Shell is called. If the user sends steering but you're only using non-Shell tools, you won't see it until your next Shell call.
 
 ### Steering Does NOT Replace Checkpoints
 

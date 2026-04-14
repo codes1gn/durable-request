@@ -34,15 +34,16 @@ Agent: [ends]
 ## Features Tested
 
 - F1: Checkpoint after task completion
-- F8: Steering acknowledgment
+- F8: Steering acknowledgment (model says "Received steering: ...")
+- F8a: Steering message visible in Shell output
 
 ## Verification Patterns
 
 ```python
 patterns = [
     r'AskQuestion',
-    r'\[durable-request\].*[Rr]eceived steering',  # F8
-    r'USER STEERING|⚡',  # steering message format
+    r'\[durable-request\].*[Rr]eceived steering',  # F8: acknowledgment
+    r'USER STEERING MESSAGE|⚡.*STEERING',  # F8a: visible in output
 ]
 ```
 

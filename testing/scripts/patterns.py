@@ -64,7 +64,13 @@ FEATURES = {
     "F8": Feature(
         id="F8",
         name="Steering acknowledgment",
-        pattern=re.compile(r'\[durable-request\].*[Rr]eceived steering|USER STEERING|⚡'),
+        pattern=re.compile(r'\[durable-request\].*[Rr]eceived steering'),
+        min_samples=10
+    ),
+    "F8a": Feature(
+        id="F8a",
+        name="Steering message visible in Shell output",
+        pattern=re.compile(r'USER STEERING MESSAGE|⚡.*STEERING'),
         min_samples=10
     ),
     "F9": Feature(

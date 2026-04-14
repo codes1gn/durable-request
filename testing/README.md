@@ -38,7 +38,8 @@ testing/
 | F5 | Multi-step checkpoint loop | 10 |
 | F6 | Durable loop (continue until Done) | 10 |
 | F7 | Subagent conversational fallback | 10 |
-| F8 | Steering acknowledgment | 10 |
+| F8 | Steering acknowledgment (model says "Received steering") | 10 |
+| F8a | Steering message visible in Shell output | 10 |
 | F9 | Todo cleanup at >20 items | 5 |
 | F10 | No silent completion | 10 |
 
@@ -73,6 +74,7 @@ PATTERNS = {
     "task_summary": r'"prompt":\s*"[^"]{10,}',  # prompt with content
     "no_silent_end": r'(AskQuestion|checkpoint\.sh|Done|durable-checkpoint)',
     "steering_ack": r'\[durable-request\].*[Rr]eceived steering',
+    "steering_visible": r'USER STEERING MESSAGE|⚡.*STEERING',
     "todo_cleanup": r'todo-cleanup\.sh|merge:\s*false',
     "subagent_fallback": r'\d+\.\s+Continue\n\d+\.\s+Iterate\n\d+\.\s+Done',
 }
