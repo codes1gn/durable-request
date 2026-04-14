@@ -105,18 +105,15 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
 
 ```json
 {
-  "title": "Task Checkpoint",
   "questions": [
     {
       "id": "next_action",
       "prompt": "<1-2 sentence summary>. What would you like to do next?",
       "options": [
-        {"id": "iterate",   "label": "Iterate / refine what was just done"},
-        {"id": "continue",  "label": "Continue to the next step"},
-        {"id": "review",    "label": "Review the changes in detail"},
-        {"id": "different", "label": "Switch to a different task"},
-        {"id": "done",      "label": "I'm satisfied, we're done"},
-        {"id": "custom",    "label": "I'll type my own instruction"}
+        {"id": "continue", "label": "Continue"},
+        {"id": "iterate",  "label": "Iterate"},
+        {"id": "done",     "label": "Done"},
+        {"id": "custom",   "label": ""}
       ],
       "allow_multiple": false
     }
@@ -127,8 +124,8 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
 Rules:
 
 - **Single question only** — never use multiple questions
-- **Last option must always be `custom`**
-- Adapt `prompt` and middle `options` to the task context
+- **Exactly 4 options, fixed**: Continue, Iterate, Done, empty (for freeform input)
+- The `prompt` should be a 1-2 sentence summary of what was completed
 
 `AskQuestion` **blocks your turn without ending the request**. This is what makes the request "durable."
 
@@ -140,7 +137,6 @@ In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Questio
 
 ```json
 {
-  "title": "Task Checkpoint",
   "sections": [
     {
       "title": "What would you like to do next?",
@@ -149,18 +145,12 @@ In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Questio
           "type": "radio",
           "name": "next_action",
           "label": "<1-2 sentence summary of what was completed>",
-          "options": [
-            "Iterate / refine what was just done",
-            "Continue to the next step",
-            "Review the changes in detail",
-            "Switch to a different task",
-            "I'm satisfied, we're done"
-          ]
+          "options": ["Continue", "Iterate", "Done"]
         },
         {
           "type": "text",
-          "name": "custom_instruction",
-          "label": "Or type your own instruction (optional)"
+          "name": "custom",
+          "label": ""
         }
       ]
     }
@@ -170,9 +160,8 @@ In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Questio
 
 Rules:
 
-- **Radio for main choice** — use `type: "radio"` for the primary action selection
-- **Text field for freeform** — always include a text field for custom instructions
-- Adapt the `label` and `options` to the task context
+- **3 radio options + 1 text field** — fixed structure
+- The `label` in the radio field is the task summary
 - The Question Carousel **blocks the turn** until user responds
 
 #### Cursor CLI: Call `checkpoint.sh` via Shell
@@ -181,12 +170,10 @@ Rules:
 
 ```bash
 bash ~/.cursor/skills/durable-request/checkpoint.sh \
-  "Task completed. What would you like to do next?" \
-  "Run tests" \
-  "Iterate on the implementation" \
-  "Review the diff" \
-  "Commit changes" \
-  "Done for now"
+  "<1-2 sentence summary>. What would you like to do next?" \
+  "Continue" \
+  "Iterate" \
+  "Done"
 ```
 
 **Prerequisite:** cursor-agent must be running inside a tmux session. Add this alias to `~/.bashrc`:
@@ -198,9 +185,9 @@ alias cursor-agent='tmux new-session -A -s cursor -- cursor-agent'
 Rules:
 
 - Call this via the **Shell** tool
-- First argument is the prompt (1-2 sentence summary + "What would you like to do next?")
-- Subsequent arguments are context-adapted options
-- The script automatically appends "I'll type my own instruction" as the last choice
+- First argument is the prompt (1-2 sentence summary)
+- **Fixed 3 options**: Continue, Iterate, Done
+- The script automatically appends an empty option for freeform input
 - The script returns `[durable-request] User responded: <choice>` — use this to continue
 - If tmux is not available, the script auto-selects the first option
 
