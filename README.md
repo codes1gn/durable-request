@@ -134,26 +134,27 @@ Validated across **3 epochs** with **170 total subagent experiments**.
 # 1. Clone the repo
 git clone git@git.enflame.cn:skills/durablerequest.git /tmp/durable-request
 
-# 2. Install to Cursor (personal scope)
+# 2. Install skill files to Cursor (personal scope)
 DIR=~/.cursor/skills/durable-request && mkdir -p "$DIR" && \
-cp /tmp/durable-request/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh} "$DIR/" && \
-chmod +x "$DIR/checkpoint.sh" "$DIR/checkpoint-ui.sh"
+cp /tmp/durable-request/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
+chmod +x "$DIR"/*.sh "$DIR/steer"
 
-# 3. Clean up
+# 3. Install steering feature (Cursor IDE)
+/tmp/durable-request/install-steering.sh
+
+# 4. Clean up
 rm -rf /tmp/durable-request
 ```
 
 ### For Agents (Recommended)
 
-Paste this into any AI agent chat — it will install itself:
+Paste this single line into any AI agent chat — it will install itself:
 
 ```
-Install durable-request: clone git@git.enflame.cn:skills/durablerequest.git,
-then copy the skill/ folder contents into the appropriate skill directories.
-See install.md in the repo for the full list of platform paths.
+Install durable-request: clone git@git.enflame.cn:skills/durablerequest.git, copy skill/ contents to skill directories per install.md, then run install-steering.sh for Cursor steering.
 ```
 
-The agent handles everything: cloning the repo, creating directories, and copying to all 9 platform locations at both project and personal scope.
+The agent handles everything: cloning the repo, creating directories, copying skill files, and configuring steering hooks.
 
 ### Manual (All Platforms)
 
@@ -161,17 +162,20 @@ The agent handles everything: cloning the repo, creating directories, and copyin
 # 1. Clone the repo (SSH — requires git.enflame.cn account)
 git clone git@git.enflame.cn:skills/durablerequest.git /tmp/durable-request
 
-# 2. Pick your platform directory and copy
+# 2. Pick your platform directory and copy skill files
 DIR=~/.cursor/skills/durable-request   # ← change for your platform
 mkdir -p "$DIR"
-cp /tmp/durable-request/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh} "$DIR/"
-chmod +x "$DIR/checkpoint.sh" "$DIR/checkpoint-ui.sh"
+cp /tmp/durable-request/skill/* "$DIR/"
+chmod +x "$DIR"/*.sh "$DIR/steer" 2>/dev/null || true
 
-# 3. Clean up
+# 3. (Cursor only) Install steering feature
+/tmp/durable-request/install-steering.sh
+
+# 4. Clean up
 rm -rf /tmp/durable-request
 ```
 
-See [install.md](install.md) for all platform paths.
+See [install.md](install.md) for all platform paths and detailed instructions.
 
 ---
 
@@ -262,6 +266,33 @@ The skill **adapts its options contextually** based on what was just completed:
 | Analysis | Explore further, Different angle, Apply findings |
 | Writing | Revise, Next section, Review accuracy |
 | File operations | Verify output, Modify format, Additional ops |
+
+---
+
+## Steering (Mid-Task Instructions)
+
+Send instructions to the agent **while it's working** without interrupting the current task:
+
+```bash
+# From terminal
+steer "focus on the API layer"
+steer "skip tests, just implement"
+steer --popup   # Interactive tmux popup
+
+# From Cursor IDE
+# Press Ctrl+Shift+S or click "Steer" button in status bar
+```
+
+The steering message will be injected at the next Shell tool call. The agent sees the message as part of tool output and adjusts its behavior accordingly.
+
+**How it works:**
+1. User sends steering via CLI, tmux popup, or Cursor extension
+2. Message is saved to `~/.durable-request/data/steering-message`
+3. `preToolUse` hook reads the file before each Shell command
+4. Hook modifies the command to include `echo "[STEERING] ..." &&` prefix
+5. Agent sees the steering message in the command output
+
+**Note:** Due to Cursor bugs, `additionalContext` and `agent_message` do not surface to the model. The workaround injects steering into Shell command output, which **is** visible to the model.
 
 ---
 

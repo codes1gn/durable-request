@@ -4,6 +4,40 @@
 
 本文档详细设计 Cursor IDE 上的 steering-in-continuation 实现方案。
 
+## 关键发现 (2026-04-14 测试确认)
+
+### Cursor Hooks 已知 Bug
+
+经过全面测试，确认以下 Cursor hooks 功能**不工作**：
+
+| 功能 | Hook 类型 | 状态 | 说明 |
+|------|----------|------|------|
+| `additionalContext` | preToolUse | ❌ | 被 hook 接受但不传递给模型 |
+| `additional_context` | postToolUse | ❌ | 被 hook 接受但不传递给模型 |
+| `agent_message` | preToolUse | ❌ | deny 时的消息不传递给模型 |
+| `permission: "deny"` | preToolUse | ⚠️ | 对 Shell/Read 工具有时被忽略 |
+
+**参考 Bug 报告:**
+- https://forum.cursor.com/t/cursor-hooks-additional-context-not-injected-in-agent-context-in-posttooluse/156157
+- https://forum.cursor.com/t/native-posttooluse-hooks-accept-and-log-additional-context-successfully-but-the-injected-context-is-not-surfaced-to-the-model/155689
+- https://forum.cursor.com/t/hooks-returning-deny-do-not-seem-to-block-tool-execution-possible-security-concern/154377
+
+### 有效的 Workaround
+
+**对于 Shell 工具**: 使用 `updated_input` 修改命令，在前面添加 `echo "steering message" &&`
+
+```bash
+# Hook 将原命令:
+echo "hello"
+
+# 修改为:
+echo "[STEERING] focus on API" && echo "hello"
+```
+
+这样 steering 消息会出现在命令输出中，模型**可以看到**工具输出，因此能够接收到 steering 指令。
+
+**限制**: 此 workaround 仅对 Shell 工具有效。对于 Read/Write/Grep 等工具，目前没有可靠的注入方式。
+
 ## 方案演进历程
 
 ### 理想方案 (不可行)
@@ -118,64 +152,118 @@
 
 ## 实现
 
-### 1. Steering Hook (`steering-hook.sh`)
+### 1. Steering Hook (`steering-hook.sh`) - 使用命令修改 Workaround
 
 ```bash
 #!/bin/bash
-# Cursor IDE PreToolUse hook for mid-turn steering
-# Location: ~/.cursor/hooks/steering-hook.sh or .cursor/hooks/steering-hook.sh
+# steering-hook.sh - PreToolUse hook for steering message injection
+#
+# STRATEGY: Modify Shell command to prepend steering message as output
+# This ensures the steering message appears in the tool's stdout,
+# which IS visible to the model as part of the tool result.
+#
+# KNOWN CURSOR BUGS (March 2026):
+# - additionalContext: NOT surfaced to model
+# - agent_message: NOT surfaced to model
+# - postToolUse additional_context: NOT surfaced to model
+#
+# WORKAROUND:
+# For Shell tools: prepend `echo "[STEERING] ..." &&` to the command
+# For other tools: use deny + user_message (limited effectiveness)
 
 set -euo pipefail
 
-STEERING_FILE="${CURSOR_STEERING_FILE:-$HOME/.cursor/steering-message}"
-HISTORY_FILE="${CURSOR_STEERING_HISTORY:-$HOME/.cursor/steering-history.log}"
-ENABLE_HISTORY="${CURSOR_STEERING_LOG:-false}"
+# Configuration
+STEERING_DIR="${DURABLE_REQUEST_DATA_DIR:-$HOME/.durable-request/data}"
+STEERING_FILE="$STEERING_DIR/steering-message"
+LOG_FILE="${DURABLE_REQUEST_LOG_FILE:-$HOME/.durable-request/data/steering-hook.log}"
 
-# No steering file, exit cleanly
-[ -f "$STEERING_FILE" ] || exit 0
+# Log function
+log() {
+  echo "[$(date -Is)] [preToolUse] $*" >> "$LOG_FILE" 2>/dev/null || true
+}
 
-# Read and validate
-MSG=$(cat "$STEERING_FILE" 2>/dev/null || echo "")
-[ -z "$MSG" ] && { rm -f "$STEERING_FILE"; exit 0; }
-
-# Log if enabled
-if [ "$ENABLE_HISTORY" = "true" ]; then
-  echo "[$(date -Iseconds)] $MSG" >> "$HISTORY_FILE"
+# Read stdin - MUST read to not hang
+INPUT_JSON=""
+if [ ! -t 0 ]; then
+  INPUT_JSON=$(cat)
 fi
 
-# Consume the message
+# Exit early if no steering file
+if [ ! -f "$STEERING_FILE" ]; then
+  exit 0
+fi
+
+# Read the message
+MSG=$(cat "$STEERING_FILE" 2>/dev/null || echo "")
+
+# Exit if empty
+if [ -z "$MSG" ]; then
+  rm -f "$STEERING_FILE"
+  exit 0
+fi
+
+# Consume the message (delete file)
 rm -f "$STEERING_FILE"
 
-# Determine priority level from message prefix
-PRIORITY="normal"
-case "$MSG" in
-  "!!!"*|"URGENT:"*|"STOP:"*)
-    PRIORITY="critical"
-    ;;
-  "!!"*|"ASAP:"*)
-    PRIORITY="high"
-    ;;
-esac
+log "Steering message consumed: $MSG"
 
-# Format the context injection
-CONTEXT_PREFIX="⚡ [STEERING"
-[ "$PRIORITY" != "normal" ] && CONTEXT_PREFIX="$CONTEXT_PREFIX:${PRIORITY^^}"
-CONTEXT_PREFIX="$CONTEXT_PREFIX]"
+# Get tool name and input
+TOOL_NAME=""
+ORIGINAL_COMMAND=""
+if [ -n "$INPUT_JSON" ] && command -v jq &> /dev/null; then
+  TOOL_NAME=$(echo "$INPUT_JSON" | jq -r '.tool_name // empty' 2>/dev/null || echo "")
+  ORIGINAL_COMMAND=$(echo "$INPUT_JSON" | jq -r '.tool_input.command // empty' 2>/dev/null || echo "")
+fi
 
-# Output JSON for Cursor hook system
-jq -n \
-  --arg context "$CONTEXT_PREFIX $MSG" \
-  --arg priority "$PRIORITY" \
-  '{
-    "hookSpecificOutput": {
-      "hookEventName": "preToolUse",
-      "additionalContext": $context,
-      "metadata": {
-        "source": "durable-request/steering",
-        "priority": $priority
+log "Tool: $TOOL_NAME"
+
+# Strategy based on tool type
+if [ "$TOOL_NAME" = "Shell" ] && [ -n "$ORIGINAL_COMMAND" ]; then
+  # For Shell: prepend echo with steering message to command
+  # This makes the steering appear in stdout which model WILL see
+  
+  # Escape single quotes in message for shell
+  ESCAPED_MSG=$(printf '%s' "$MSG" | sed "s/'/'\\\\''/g")
+  
+  # Build new command with steering prefix
+  NEW_COMMAND="echo '╔══════════════════════════════════════════════════════════════╗
+║ ⚡ USER STEERING MESSAGE                                       ║
+╠══════════════════════════════════════════════════════════════╣
+║ $ESCAPED_MSG
+╚══════════════════════════════════════════════════════════════╝
+Please acknowledge and incorporate this instruction.' && $ORIGINAL_COMMAND"
+  
+  log "Modified command to include steering"
+  
+  # Output with updated_input
+  if command -v jq &> /dev/null; then
+    jq -n --arg cmd "$NEW_COMMAND" '{
+      "permission": "allow",
+      "updated_input": {
+        "command": $cmd
       }
-    }
-  }'
+    }'
+  else
+    ESCAPED_CMD=$(printf '%s' "$NEW_COMMAND" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || echo '""')
+    echo "{\"permission\": \"allow\", \"updated_input\": {\"command\": $ESCAPED_CMD}}"
+  fi
+else
+  # For non-Shell tools: use deny + agent_message (may not work due to Cursor bug)
+  log "Non-Shell tool, using deny fallback (limited effectiveness)"
+  
+  AGENT_MSG="⚡ USER STEERING: $MSG"
+  
+  if command -v jq &> /dev/null; then
+    jq -n --arg msg "$AGENT_MSG" '{
+      "permission": "deny",
+      "user_message": "Steering message delivered (non-Shell tool)",
+      "agent_message": $msg
+    }'
+  else
+    echo '{"permission": "allow"}'
+  fi
+fi
 
 exit 0
 ```
@@ -494,10 +582,11 @@ echo '  "preToolUse": [{"command": "~/.durable-request/hooks/steering-hook.sh"}]
 ## 已知限制
 
 1. **延迟**: Steering 只在下一个工具调用时被处理，不是真正的实时
-2. **Context 注入 bug**: 有社区报告 `additional_context` 有时不被正确传递
-3. **单消息**: 同时只能有一条 steering message (后写覆盖前写)
-4. **需要 jq**: 依赖 `jq` 生成 JSON 输出
-5. **需要额外终端**: 用户需要在另一个终端窗口执行 `steer` 命令
+2. **Context 注入 bug**: ⚠️ **已确认** `additionalContext` 和 `agent_message` 都不传递给模型
+3. **Shell 限定**: 命令修改 workaround 仅对 Shell 工具有效，Read/Write/Grep 等无法注入
+4. **单消息**: 同时只能有一条 steering message (后写覆盖前写)
+5. **需要 jq**: 依赖 `jq` 生成 JSON 输出
+6. **需要额外终端**: 用户需要在另一个终端窗口执行 `steer` 命令，或使用 Cursor 扩展
 
 ## 测试计划
 

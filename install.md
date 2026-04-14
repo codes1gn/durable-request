@@ -4,10 +4,11 @@ This guide is designed to be read and executed by an LLM agent.
 
 ## What You're Installing
 
-Two components:
+Three components:
 
 1. **Skill file** (`skill/SKILL.md`) — teaches any AI agent to present an interactive checkpoint after completing any task. Works on all platforms. No runtime, no dependencies.
-2. **CLI checkpoint tool** (`skill/checkpoint.sh` + `skill/checkpoint-ui.sh`, Cursor CLI only) — enables true blocking interactive checkpoints in Cursor CLI via tmux split panes. Optional for other platforms.
+2. **CLI checkpoint tool** (`skill/checkpoint.sh` + `skill/checkpoint-ui.sh`, Cursor CLI only) — enables true blocking interactive checkpoints in Cursor CLI via tmux split panes.
+3. **Steering feature** (Cursor only) — mid-task instructions via CLI, tmux popup, or IDE extension. Requires running `install-steering.sh`.
 
 ## Step 1: Clone the Repository
 
@@ -89,25 +90,54 @@ If tmux is already running, kill it so it picks up the new config: `tmux kill-se
 ls -la ~/.cursor/skills/durable-request/checkpoint*.sh
 ```
 
-## Step 4: Verify
+## Step 4: Install Steering Feature (Cursor only)
 
-Confirm the file exists in at least one location:
+This step is **only for Cursor** users (both IDE and CLI). Skip for other platforms.
+
+Run the one-click installation script:
+
+```bash
+/tmp/durable-request-repo/install-steering.sh
+```
+
+This installs:
+- `steer` CLI tool to `~/.durable-request/bin/`
+- `steer-ui.sh` tmux popup to `~/.durable-request/skill/`
+- `steering-hook.sh` preToolUse hook to `~/.durable-request/hooks/`
+- Cursor hooks configuration to `~/.cursor/hooks.json`
+- tmux keybinding (prefix + S) to `~/.tmux.conf`
+- Optional: Cursor/VSCode extension for status bar button + Ctrl+Shift+S
+
+After installation:
+```bash
+# Verify CLI
+~/.durable-request/bin/steer --help
+
+# Test steering
+steer "test message"
+steer --status
+steer --clear
+```
+
+## Step 5: Verify
+
+Confirm the skill file exists:
 
 ```bash
 ls ~/.cursor/skills/durable-request/SKILL.md 2>/dev/null \
   || ls .cursor/skills/durable-request/SKILL.md 2>/dev/null \
-  && echo "Installation verified." || echo "Not found in Cursor paths — check other platform paths."
+  && echo "Skill file verified." || echo "Not found — check other platform paths."
 ```
 
-Confirm the CLI checkpoint tool is installed (Cursor CLI only):
+Confirm steering is installed (Cursor only):
 
 ```bash
-ls ~/.cursor/skills/durable-request/checkpoint.sh 2>/dev/null \
-  && echo "CLI checkpoint tool verified." \
-  || echo "CLI checkpoint not installed (optional, Cursor CLI only)."
+~/.durable-request/bin/steer --status 2>/dev/null \
+  && echo "Steering verified." \
+  || echo "Steering not installed (optional, Cursor only)."
 ```
 
-## Step 5: Restart Your Agent Session
+## Step 6: Restart Your Agent Session
 
 The skill is active the next time you start an agent session. No config changes needed. The CLI checkpoint tool is picked up automatically.
 

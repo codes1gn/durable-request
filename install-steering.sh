@@ -26,6 +26,7 @@ INSTALL_DIR="${HOME}/.durable-request"
 BIN_DIR="${INSTALL_DIR}/bin"
 HOOKS_DIR="${INSTALL_DIR}/hooks"
 DATA_DIR="${INSTALL_DIR}/data"
+SKILL_DIR="${INSTALL_DIR}/skill"
 CURSOR_HOOKS_FILE="${HOME}/.cursor/hooks.json"
 
 # Source repo (for downloading)
@@ -50,7 +51,7 @@ log_step() {
 # Create directories
 create_directories() {
   log_step "Creating directories..."
-  mkdir -p "$BIN_DIR" "$HOOKS_DIR" "$DATA_DIR"
+  mkdir -p "$BIN_DIR" "$HOOKS_DIR" "$DATA_DIR" "$SKILL_DIR"
   log_info "Created $INSTALL_DIR"
 }
 
@@ -79,6 +80,33 @@ install_steer_cli() {
   
   chmod +x "$STEER_PATH"
   log_info "Installed: $STEER_PATH"
+}
+
+# Install steer UI (for tmux popup)
+install_steer_ui() {
+  log_step "Installing steer UI (tmux popup)..."
+  
+  local UI_PATH="$SKILL_DIR/steer-ui.sh"
+  
+  # Check if we're running from the repo
+  if [ -f "./skill/steer-ui.sh" ]; then
+    cp "./skill/steer-ui.sh" "$UI_PATH"
+    log_info "Copied from local repo"
+  else
+    # Download from repo
+    if command -v curl &> /dev/null; then
+      curl -sSL "${REPO_URL}/skill/steer-ui.sh" -o "$UI_PATH"
+    elif command -v wget &> /dev/null; then
+      wget -q "${REPO_URL}/skill/steer-ui.sh" -O "$UI_PATH"
+    else
+      log_error "Neither curl nor wget found. Please install one."
+      exit 1
+    fi
+    log_info "Downloaded from repo"
+  fi
+  
+  chmod +x "$UI_PATH"
+  log_info "Installed: $UI_PATH"
 }
 
 # Install steering hook
@@ -240,6 +268,44 @@ install_extension() {
   fi
 }
 
+# Configure tmux keybinding (optional, non-destructive)
+configure_tmux() {
+  log_step "Configuring tmux keybinding (optional)..."
+  
+  local TMUX_CONF="$HOME/.tmux.conf"
+  local KEYBIND='bind-key S run-shell "~/.durable-request/bin/steer --popup"'
+  local MARKER="# durable-request steering"
+  
+  # Check if tmux is available
+  if ! command -v tmux &> /dev/null; then
+    log_warn "tmux not installed, skipping keybinding setup"
+    return 0
+  fi
+  
+  # Check if already configured (look for our marker)
+  if [ -f "$TMUX_CONF" ] && grep -q "$MARKER" "$TMUX_CONF" 2>/dev/null; then
+    log_info "tmux keybinding already configured"
+    return 0
+  fi
+  
+  # Check if bind-key S is already used by user (avoid conflict)
+  if [ -f "$TMUX_CONF" ] && grep -qE "^\s*bind(-key)?\s+S\s+" "$TMUX_CONF" 2>/dev/null; then
+    log_warn "tmux 'S' key already bound, using 'M-s' (Alt+s) instead"
+    KEYBIND='bind-key M-s run-shell "~/.durable-request/bin/steer --popup"'
+  fi
+  
+  # Append to tmux.conf (create if not exists)
+  {
+    echo ""
+    echo "$MARKER"
+    echo "# Press prefix + S (or M-s) to open steering popup"
+    echo "$KEYBIND"
+  } >> "$TMUX_CONF"
+  
+  log_info "Added keybinding to $TMUX_CONF"
+  log_info "Reload with: tmux source-file ~/.tmux.conf"
+}
+
 # Print summary
 print_summary() {
   echo ""
@@ -249,14 +315,19 @@ print_summary() {
   echo ""
   echo "Components installed:"
   echo "  ✓ steer CLI:       $BIN_DIR/steer"
+  echo "  ✓ steer UI:        $SKILL_DIR/steer-ui.sh"
   echo "  ✓ Steering hook:   $HOOKS_DIR/steering-hook.sh"
   echo "  ✓ Cursor config:   $CURSOR_HOOKS_FILE"
   echo ""
   echo "Usage:"
   echo "  # From terminal:"
   echo "  steer \"focus on the API layer\""
+  echo "  steer --popup         # Interactive tmux popup"
   echo "  steer --status"
   echo "  steer --clear"
+  echo ""
+  echo "  # Tmux (prefix + S):"
+  echo "  Press Ctrl+b then S to open steering popup"
   echo ""
   echo "  # From Cursor (if extension installed):"
   echo "  Press Ctrl+Shift+S (or Cmd+Shift+S on Mac)"
@@ -278,9 +349,11 @@ main() {
   
   create_directories
   install_steer_cli
+  install_steer_ui
   install_steering_hook
   configure_cursor_hooks
   configure_path
+  configure_tmux
   install_extension
   print_summary
 }

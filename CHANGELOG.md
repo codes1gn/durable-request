@@ -6,16 +6,36 @@ All notable changes to durable-request are documented here.
 
 ### Added
 - **Copilot IDE (VSCode) support** — `#vscode/askQuestions` integration with Question Carousel UI
+- **Cursor IDE steering** — mid-task steering messages via preToolUse hook
+  - `steer` CLI tool for sending steering messages
+  - `steer-ui.sh` for interactive tmux popup
+  - `steering-hook.sh` preToolUse hook with Shell command modification workaround
+  - Cursor extension for StatusBar button + keyboard shortcut (Ctrl+Shift+S)
+- **One-click install script** — `install-steering.sh` installs CLI, hook, extension, and tmux keybinding
+
+### Technical Details
+- Shell command modification workaround: steering injected via `updated_input.command` prepending echo
+- Non-Shell tools: steering kept pending until next Shell call (due to Cursor `additionalContext` bug)
+- Supports both Cursor IDE and CLI modes
+
+### Research
+- **Cursor hooks bug analysis**: documented that `additionalContext`, `agent_message`, and `postToolUse additional_context` do NOT surface to model
+- Workaround strategy: modify Shell commands to include steering in stdout
+- `docs/research/cursor-steering-implementation.md` — updated with bug findings and workaround
+
+### Documentation
+- `docs/research/copilot-askquestions-steering.md` — Copilot tools, steering, and billing
+- `docs/research/cursor-extension-feasibility.md` — VSCode extension technical analysis
+- `docs/research/steering-ux-comparison.md` — CLI vs extension UX comparison
+
+## [1.1.1] - 2026-04-14
+
+### Added
+- **Copilot IDE (VSCode) support** — `#vscode/askQuestions` integration (research phase)
 - Environment detection for Copilot IDE in checkpoint priority table
 
 ### Research
-- **Steering in-continuation** design documented for Cursor IDE (hook-based approach)
-- `PreToolUse` hook steering implementation design (`docs/research/cursor-steering-implementation.md`)
-- Copilot steering cost analysis (`docs/research/copilot-askquestions-steering.md`)
-
-### Documentation
-- `docs/research/copilot-askquestions-steering.md` — comprehensive research on Copilot tools, steering, and billing
-- `docs/research/cursor-steering-implementation.md` — detailed implementation design for Cursor steering
+- `PreToolUse` hook steering design documentation
 
 ## [1.1.0] - 2026-04-12
 
