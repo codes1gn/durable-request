@@ -32,26 +32,45 @@
 - [beforeSubmitPrompt hook block is broken](https://forum.cursor.com/t/beforesubmitprompt-hook-block-is-broken/156823)
 - [No mechanism to trigger hooks when agent is idle](https://forum.cursor.com/t/no-mechanism-to-trigger-hooks-or-inject-messages-into-cursor-when-agent-is-idle/153966)
 
-### 当前方案 (已实现)
+### 当前方案 (推荐)
 
-**方案 2: 纯文件方案 + steer CLI**
+**方案 2: 文件协议 + 双入口 (CLI + 扩展)**
 
-绕过 Cursor 的 hook 限制，使用独立的 CLI 工具写入文件，`preToolUse` hook 读取：
+绕过 Cursor 的 hook 限制，提供两种输入方式：
 
 ```
-用户在终端: steer "focus on API" → 写入 ~/.durable-request/steering-message →
-preToolUse hook 检测文件 → 读取 + 注入 additionalContext → 删除文件
+┌─────────────────────────────────────────────────────────────┐
+│  入口 1: Cursor 扩展 (推荐日常使用)                           │
+│                                                              │
+│  [状态栏 Steer 按钮] 或 [Ctrl+Shift+S]                       │
+│         │                                                    │
+│         ▼                                                    │
+│  [输入框弹出] ──▶ 输入 steering message                       │
+│         │                                                    │
+│         ▼                                                    │
+│  ~/.durable-request/data/steering-message                    │
+├─────────────────────────────────────────────────────────────┤
+│  入口 2: CLI (推荐脚本/自动化)                                │
+│                                                              │
+│  $ steer "focus on API layer"                                │
+│         │                                                    │
+│         ▼                                                    │
+│  ~/.durable-request/data/steering-message                    │
+└─────────────────────────────────────────────────────────────┘
+           │
+           ▼
+  preToolUse hook 检测文件 → 读取 + 注入 additionalContext → 删除文件
 ```
 
 **优点:**
 - 不依赖 Cursor 的 bug 被修复
+- 扩展方案提供最佳日常 UX (无需切换窗口)
+- CLI 保留用于脚本化/自动化
+- 两者共享相同文件协议，无额外维护成本
 - `preToolUse` hook 的 `additionalContext` 功能稳定
 - 可跨平台复用 (Cursor, Claude Code, OpenCode)
 
-**缺点:**
-- 需要额外终端窗口
-- 用户需要记住 `steer` 命令
-- 不如 Chat 输入框直观
+**UX 对比:** 详见 [steering-ux-comparison.md](./steering-ux-comparison.md)
 
 ## 核心机制: PreToolUse Hook
 
