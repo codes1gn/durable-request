@@ -2,7 +2,16 @@
 
 All notable changes to durable-request are documented here.
 
-## [1.2.1] - 2026-04-14
+## [1.1.4] - 2026-04-14
+
+### Changed
+- Checkpoint options changed from fixed "Continue/Iterate/Done" to A/B/C/D format
+- A, B, C: AI generates 3 most likely next actions based on context
+- D: empty option for freeform input
+- Reorganized testing framework: harness/ → testing/scripts/, data/ → testing/results/
+- Added 10 standardized workloads in testing/workloads/
+
+## [1.1.3] - 2026-04-14
 
 ### Fixed
 - `steer-ui.sh` now installs to `~/.durable-request/bin/` instead of `skill/`
@@ -11,7 +20,7 @@ All notable changes to durable-request are documented here.
 - Updated `steer` header comments to reflect Shell command modification workaround
 - Improved Cursor extension install status detection in install script
 
-## [1.2.0] - 2026-04-14
+## [1.1.2] - 2026-04-14
 
 ### Added
 - **Copilot IDE (VSCode) support** — `#vscode/askQuestions` integration with Question Carousel UI
