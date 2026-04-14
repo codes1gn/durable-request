@@ -259,9 +259,18 @@ install_extension() {
   
   # Try to install in Cursor
   if command -v cursor &> /dev/null; then
-    cursor --install-extension "$VSIX_PATH" 2>/dev/null && \
-      log_info "Installed extension in Cursor" || \
+    local EXT_OUTPUT
+    if EXT_OUTPUT=$(cursor --install-extension "$VSIX_PATH" 2>&1); then
+      if echo "$EXT_OUTPUT" | grep -qi "successfully installed\|was successfully"; then
+        log_info "Installed extension in Cursor"
+      elif echo "$EXT_OUTPUT" | grep -qi "error\|failed\|invalid"; then
+        log_warn "Extension installation may have failed: $EXT_OUTPUT"
+      else
+        log_info "Extension install attempted (check Cursor to verify)"
+      fi
+    else
       log_warn "Could not install extension automatically"
+    fi
   else
     log_warn "Cursor CLI not found. Install extension manually:"
     log_warn "  Extensions: Install from VSIX... → $VSIX_PATH"
