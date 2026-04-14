@@ -2,6 +2,21 @@
 
 All notable changes to durable-request are documented here.
 
+## [1.2.0] - 2026-04-14
+
+### Added
+- **Copilot IDE (VSCode) support** — `#vscode/askQuestions` integration with Question Carousel UI
+- Environment detection for Copilot IDE in checkpoint priority table
+
+### Research
+- **Steering in-continuation** design documented for Cursor IDE (hook-based approach)
+- `PreToolUse` hook steering implementation design (`docs/research/cursor-steering-implementation.md`)
+- Copilot steering cost analysis (`docs/research/copilot-askquestions-steering.md`)
+
+### Documentation
+- `docs/research/copilot-askquestions-steering.md` — comprehensive research on Copilot tools, steering, and billing
+- `docs/research/cursor-steering-implementation.md` — detailed implementation design for Cursor steering
+
 ## [1.1.0] - 2026-04-12
 
 ### Added

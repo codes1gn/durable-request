@@ -31,12 +31,12 @@ This applies to:
 durable-request uses platform-specific blocking checkpoints:
 
 ```
-Cursor Editor               Cursor CLI                     Opencode / Other
-─────────────────────────   ────────────────────────────   ────────────────────────
-AskQuestion                 checkpoint.sh via Shell        question / other tool
-Built-in UI widget          Tmux split-pane interactive    Built-in UI widget
-Blocks turn, same request   Blocks via file polling        Blocks turn, same request
-User picks from structured  User picks in tmux pane        User picks or types
+Cursor Editor               Copilot IDE (VSCode)           Cursor CLI                     Opencode / Other
+─────────────────────────   ────────────────────────────   ────────────────────────────   ────────────────────────
+AskQuestion                 #vscode/askQuestions           checkpoint.sh via Shell        question / other tool
+Built-in UI widget          Question Carousel UI           Tmux split-pane interactive    Built-in UI widget
+Blocks turn, same request   Blocks turn, same request      Blocks via file polling        Blocks turn, same request
+User picks from structured  User picks or types            User picks in tmux pane        User picks or types
 ```
 
 ## Checkpoint Mechanism
@@ -74,22 +74,26 @@ Detect your environment and attempt the appropriate interactive tool. **Always t
 **Detect your environment and use the right tool:**
 
 
-| Priority | Signal                                                        | Environment         | Action                         |
-| -------- | ------------------------------------------------------------- | ------------------- | ------------------------------ |
-| 1        | You are running inside Cursor **CLI** (no GUI, terminal-only) | Cursor CLI          | Call `checkpoint.sh` via Shell |
-| 2        | `AskQuestion` is available                                    | Cursor editor (IDE) | Call `AskQuestion`             |
-| 3        | `AskUserQuestion` is available                                | Claude Code         | Call `AskUserQuestion`         |
-| 4        | `question` is available                                       | OpenCode            | Call `question`                |
-| 5        | You are a **subagent** with no interactive tools              | Subagent only       | Conversational fallback        |
-| —        | None of the above (unexpected)                                | Unknown             | **ERROR** — report failure     |
+| Priority | Signal                                                        | Environment         | Action                            |
+| -------- | ------------------------------------------------------------- | ------------------- | --------------------------------- |
+| 1        | You are running inside Cursor **CLI** (no GUI, terminal-only) | Cursor CLI          | Call `checkpoint.sh` via Shell    |
+| 2        | `AskQuestion` is available                                    | Cursor editor (IDE) | Call `AskQuestion`                |
+| 3        | `#vscode/askQuestions` tool is available                      | Copilot IDE (VSCode)| Call `#vscode/askQuestions`       |
+| 4        | `AskUserQuestion` is available                                | Claude Code         | Call `AskUserQuestion`            |
+| 5        | `question` is available                                       | OpenCode            | Call `question`                   |
+| 6        | You are a **subagent** with no interactive tools              | Subagent only       | Conversational fallback           |
+| —        | None of the above (unexpected)                                | Unknown             | **ERROR** — report failure        |
 
 
 **How to detect Cursor CLI vs IDE:** If `AskQuestion` is called and it **fails or is interrupted** (returns an error), you are in Cursor CLI. Immediately switch to `checkpoint.sh` via Shell. Do NOT fall back to conversational text.
+
+**How to detect Copilot IDE:** If you are running in VS Code with GitHub Copilot, the `#vscode/askQuestions` tool is available. Use it instead of `AskQuestion`.
 
 **Platform-specific tools are MANDATORY. Never substitute conversational fallback.**
 
 - **Cursor IDE** → `AskQuestion`
 - **Cursor CLI** → `checkpoint.sh` via Shell (if `AskQuestion` fails, that confirms CLI)
+- **Copilot IDE (VSCode)** → `#vscode/askQuestions`
 - **OpenCode** → `question`
 - **Claude Code** → `AskUserQuestion`
 - **Subagent** → Conversational fallback (ONLY case where text fallback is allowed)
@@ -129,6 +133,47 @@ Rules:
 `AskQuestion` **blocks your turn without ending the request**. This is what makes the request "durable."
 
 **If `AskQuestion` fails or is interrupted → you are in Cursor CLI.** Switch to `checkpoint.sh` immediately (see below).
+
+#### Copilot IDE (VSCode): Call `#vscode/askQuestions`
+
+In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Question Carousel UI:
+
+```json
+{
+  "title": "Task Checkpoint",
+  "sections": [
+    {
+      "title": "What would you like to do next?",
+      "fields": [
+        {
+          "type": "radio",
+          "name": "next_action",
+          "label": "<1-2 sentence summary of what was completed>",
+          "options": [
+            "Iterate / refine what was just done",
+            "Continue to the next step",
+            "Review the changes in detail",
+            "Switch to a different task",
+            "I'm satisfied, we're done"
+          ]
+        },
+        {
+          "type": "text",
+          "name": "custom_instruction",
+          "label": "Or type your own instruction (optional)"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Rules:
+
+- **Radio for main choice** — use `type: "radio"` for the primary action selection
+- **Text field for freeform** — always include a text field for custom instructions
+- Adapt the `label` and `options` to the task context
+- The Question Carousel **blocks the turn** until user responds
 
 #### Cursor CLI: Call `checkpoint.sh` via Shell
 
@@ -202,13 +247,14 @@ The agent continues with the auto-selected option.
 Use the platform-specific tool. If it's unavailable, handle as follows:
 
 
-| Environment | Tool Missing                          | Action                                  |
-| ----------- | ------------------------------------- | --------------------------------------- |
-| Cursor IDE  | `AskQuestion` unavailable             | You're in CLI — use `checkpoint.sh`     |
-| Cursor CLI  | `Shell` / `checkpoint.sh` unavailable | ERROR — report failure, do not fallback |
-| OpenCode    | `question` unavailable                | ERROR — report failure, do not fallback |
-| Claude Code | `AskUserQuestion` unavailable         | ERROR — report failure, do not fallback |
-| Subagent    | No interactive tools at all           | Conversational fallback allowed         |
+| Environment  | Tool Missing                          | Action                                  |
+| ------------ | ------------------------------------- | --------------------------------------- |
+| Cursor IDE   | `AskQuestion` unavailable             | You're in CLI — use `checkpoint.sh`     |
+| Copilot IDE  | `#vscode/askQuestions` unavailable    | ERROR — report failure, do not fallback |
+| Cursor CLI   | `Shell` / `checkpoint.sh` unavailable | ERROR — report failure, do not fallback |
+| OpenCode     | `question` unavailable                | ERROR — report failure, do not fallback |
+| Claude Code  | `AskUserQuestion` unavailable         | ERROR — report failure, do not fallback |
+| Subagent     | No interactive tools at all           | Conversational fallback allowed         |
 
 
 **Conversational fallback (numbered text options) is ONLY for subagents that truly lack any interactive mechanism.** If you are in Cursor IDE, Cursor CLI, OpenCode, or Claude Code and the expected tool fails — ERROR. Do NOT substitute text fallback. Report the issue explicitly so the user knows something is wrong.
