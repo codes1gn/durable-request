@@ -28,7 +28,7 @@ const releases: Release[] = [
       { type: "changed", text: "Status bar label now shows the queued message: ⚡ Steering pending — \"focus on the API layer\"" },
       { type: "fixed", text: "Status bar flickered back to normal after 30 s even if message was not consumed — removed the 30-second timeout, replaced with file-based polling" },
       { type: "fixed", text: "Extension deactivation now properly clears the poll interval without leaking timers" },
-      { type: "note", text: "Platform availability: Claude Code ✓ free (new), Codex ✓ free (new), Copilot IDE ✓ +1 request. Cursor IDE ✗ and Cursor CLI ✗ — hook output does not surface to model in either Cursor mode" },
+      { type: "note", text: "Market gap: Claude Code, Codex, and Copilot IDE all had native steering; Cursor had none. durable-request v1.2 solves this for Cursor CLI via Shell command injection (preToolUse updated_input). Cursor IDE still unsupported." },
     ],
   },
   {

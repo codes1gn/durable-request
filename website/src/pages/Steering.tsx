@@ -164,78 +164,90 @@ export function Steering() {
         {/* ── Platform Compatibility ── */}
         <ScrollReveal delay={0.1}>
           <div className="mb-20">
-            <h2 className="text-xl font-bold mb-4 text-center">Platform Availability</h2>
+            <h2 className="text-xl font-bold mb-2 text-center">Market Comparison</h2>
+            <p className="text-sm text-[var(--muted-foreground)] text-center mb-6 max-w-2xl mx-auto">
+              In-continuation steering is a feature all major AI coding tools had — except Cursor.
+              durable-request closes that gap for Cursor CLI users.
+            </p>
             <div className="space-y-4 max-w-4xl mx-auto">
-              {/* Row 1: Claude Code + Codex (newly supported) + Copilot */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Claude Code — newly supported */}
-                <div className="rounded-xl border border-emerald-500/25 bg-[var(--card)] p-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold">Claude Code</span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase tracking-wider">
-                        New in v1.2
-                      </span>
-                    </div>
-                    <span className="text-base font-bold text-emerald-400">✓</span>
-                  </div>
-                  <div className="text-xs font-mono font-bold text-emerald-400 mb-3">Free of request</div>
-                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                    Hook fires inside the running conversation. No separate request consumed.
-                  </p>
+              {/* Row 1: Competitors that already had it */}
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+                <div className="text-xs text-[var(--muted-foreground)] font-semibold mb-3 uppercase tracking-wider">
+                  Other tools — already supported
                 </div>
-
-                {/* Codex — newly supported */}
-                <div className="rounded-xl border border-emerald-500/25 bg-[var(--card)] p-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold">Codex</span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase tracking-wider">
-                        New in v1.2
-                      </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold">Claude Code</span>
+                      <span className="text-sm font-bold text-emerald-400">✓</span>
                     </div>
-                    <span className="text-base font-bold text-emerald-400">✓</span>
+                    <div className="text-xs font-mono text-emerald-400 mb-2">Native, free of request</div>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Built-in steering via AskUserQuestion.
+                    </p>
                   </div>
-                  <div className="text-xs font-mono font-bold text-emerald-400 mb-3">Free of request</div>
-                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                    Shell-level injection delivers steering in-continuation at zero extra cost.
-                  </p>
-                </div>
-
-                {/* Copilot IDE */}
-                <div className="rounded-xl border border-amber-500/25 bg-[var(--card)] p-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Copilot IDE</span>
-                    <span className="text-base font-bold text-amber-400">✓</span>
+                  <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold">Codex</span>
+                      <span className="text-sm font-bold text-emerald-400">✓</span>
+                    </div>
+                    <div className="text-xs font-mono text-emerald-400 mb-2">Native, free of request</div>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Shell-level steering built into the runtime.
+                    </p>
                   </div>
-                  <div className="text-xs font-mono font-bold text-amber-400 mb-3">+1 request per message</div>
-                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                    Question carousel delivers the message, but requires a new API round-trip.
-                  </p>
+                  <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold">Copilot IDE</span>
+                      <span className="text-sm font-bold text-amber-400">✓</span>
+                    </div>
+                    <div className="text-xs font-mono text-amber-400 mb-2">Native, +1 request</div>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Question carousel costs one extra API call per message.
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Row 2: Cursor IDE + CLI — both not supported */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-60">
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Cursor IDE</span>
-                    <span className="text-base font-bold text-rose-400">✗</span>
+              {/* Row 2: Cursor — the gap durable-request fills */}
+              <div className="rounded-xl border-2 border-amber-500/40 bg-[var(--card)] p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-xs text-amber-400 font-semibold uppercase tracking-wider">
+                    Cursor — the gap
                   </div>
-                  <div className="text-xs font-mono font-bold text-rose-400 mb-3">Not supported</div>
-                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                    preToolUse hook output does not surface to the model in the GUI editor.
-                  </p>
+                  <div className="h-px flex-1 bg-amber-500/20" />
+                  <div className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase tracking-wider">
+                    durable-request solves it
+                  </div>
                 </div>
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Cursor CLI</span>
-                    <span className="text-base font-bold text-rose-400">✗</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="rounded-lg border border-rose-500/20 bg-[var(--background)] p-4 opacity-70">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold">Cursor IDE</span>
+                      <span className="text-sm font-bold text-rose-400">✗</span>
+                    </div>
+                    <div className="text-xs font-mono text-rose-400 mb-2">Not supported</div>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      preToolUse hook output is not visible to the model in the GUI editor.
+                    </p>
                   </div>
-                  <div className="text-xs font-mono font-bold text-rose-400 mb-3">Not supported</div>
-                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                    Shell command injection via updated_input does not work in non-interactive CLI mode.
-                  </p>
+                  <div className="rounded-lg border-2 border-emerald-500/40 bg-[var(--background)] p-4 relative">
+                    <div className="absolute -top-3 left-4">
+                      <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-500 text-black uppercase tracking-wider shadow">
+                        ✓ Now solved by durable-request
+                      </span>
+                    </div>
+                    <div className="mt-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-semibold">Cursor CLI</span>
+                        <span className="text-sm font-bold text-emerald-400">✓</span>
+                      </div>
+                      <div className="text-xs font-mono text-emerald-400 mb-2">Free of request</div>
+                      <p className="text-xs text-[var(--muted-foreground)]">
+                        Shell command injection via updated_input — steering delivered in-continuation with zero extra API cost.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
