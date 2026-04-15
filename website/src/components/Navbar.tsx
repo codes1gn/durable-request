@@ -56,12 +56,20 @@ export function Navbar() {
             Roadmap
           </Link>
           <Link
+            to="/steering"
+            className={`hover:text-[var(--foreground)] transition-colors ${
+              location.pathname === "/steering" ? "text-[var(--foreground)] font-semibold" : ""
+            }`}
+          >
+            <span className="text-amber-400">⚡</span> Steering
+          </Link>
+          <Link
             to="/cli-session"
             className={`hover:text-[var(--foreground)] transition-colors ${
               location.pathname === "/cli-session" ? "text-[var(--foreground)] font-semibold" : ""
             }`}
           >
-            The CLI Plugin Design
+            CLI Plugin
           </Link>
           <a
             href={REPO_URL}
