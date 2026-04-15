@@ -28,7 +28,7 @@ const releases: Release[] = [
       { type: "changed", text: "Status bar label now shows the queued message: ⚡ Steering pending — \"focus on the API layer\"" },
       { type: "fixed", text: "Status bar flickered back to normal after 30 s even if message was not consumed — removed the 30-second timeout, replaced with file-based polling" },
       { type: "fixed", text: "Extension deactivation now properly clears the poll interval without leaking timers" },
-      { type: "note", text: "Market gap: Claude Code, Codex, and Copilot IDE all had native steering; Cursor had none. durable-request v1.2 solves this for Cursor CLI via Shell command injection (preToolUse updated_input). Cursor IDE still unsupported." },
+      { type: "note", text: "Market gap closed: Claude Code, Codex, and Copilot IDE have native steering; Cursor (IDE and CLI) has no official support. durable-request v1.2 implements steering for both Cursor modes — free of request, via Shell injection + VSCode extension." },
     ],
   },
   {

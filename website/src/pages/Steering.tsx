@@ -166,8 +166,8 @@ export function Steering() {
           <div className="mb-20">
             <h2 className="text-xl font-bold mb-2 text-center">Market Comparison</h2>
             <p className="text-sm text-[var(--muted-foreground)] text-center mb-6 max-w-2xl mx-auto">
-              In-continuation steering is a feature all major AI coding tools had — except Cursor.
-              durable-request closes that gap for Cursor CLI users.
+              In-continuation steering is a feature all major AI coding tools have natively — except Cursor.
+              Cursor (IDE and CLI) has no official support. durable-request implements it for both, free of request.
             </p>
             <div className="space-y-4 max-w-4xl mx-auto">
               {/* Row 1: Competitors that already had it */}
@@ -209,46 +209,56 @@ export function Steering() {
                 </div>
               </div>
 
-              {/* Row 2: Cursor — the gap durable-request fills */}
+              {/* Row 2: Cursor — both unsupported officially, both solved by durable-request */}
               <div className="rounded-xl border-2 border-amber-500/40 bg-[var(--card)] p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="text-xs text-amber-400 font-semibold uppercase tracking-wider">
-                    Cursor — the gap
+                    Cursor (官方不支持)
                   </div>
                   <div className="h-px flex-1 bg-amber-500/20" />
-                  <div className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase tracking-wider">
-                    durable-request solves it
+                  <div className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase tracking-wider">
+                    ✓ durable-request 实现了
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-rose-500/20 bg-[var(--background)] p-4 opacity-70">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold">Cursor IDE</span>
-                      <span className="text-sm font-bold text-rose-400">✗</span>
-                    </div>
-                    <div className="text-xs font-mono text-rose-400 mb-2">Not supported</div>
-                    <p className="text-xs text-[var(--muted-foreground)]">
-                      preToolUse hook output is not visible to the model in the GUI editor.
-                    </p>
-                  </div>
                   <div className="rounded-lg border-2 border-emerald-500/40 bg-[var(--background)] p-4 relative">
-                    <div className="absolute -top-3 left-4">
+                    <div className="absolute -top-3 left-3">
                       <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-500 text-black uppercase tracking-wider shadow">
-                        ✓ Now solved by durable-request
+                        ✓ durable-request
                       </span>
                     </div>
-                    <div className="mt-1">
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-semibold">Cursor IDE</span>
+                        <span className="text-sm font-bold text-emerald-400">✓</span>
+                      </div>
+                      <div className="text-xs font-mono text-emerald-400 mb-2">Free of request</div>
+                      <p className="text-xs text-[var(--muted-foreground)]">
+                        VSCode extension injects steering via status bar button + preToolUse Shell injection.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border-2 border-emerald-500/40 bg-[var(--background)] p-4 relative">
+                    <div className="absolute -top-3 left-3">
+                      <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-500 text-black uppercase tracking-wider shadow">
+                        ✓ durable-request
+                      </span>
+                    </div>
+                    <div className="mt-2">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-semibold">Cursor CLI</span>
                         <span className="text-sm font-bold text-emerald-400">✓</span>
                       </div>
                       <div className="text-xs font-mono text-emerald-400 mb-2">Free of request</div>
                       <p className="text-xs text-[var(--muted-foreground)]">
-                        Shell command injection via updated_input — steering delivered in-continuation with zero extra API cost.
+                        Shell command injection via updated_input — steering in-continuation with zero extra API cost.
                       </p>
                     </div>
                   </div>
                 </div>
+                <p className="text-xs text-[var(--muted-foreground)] mt-3 text-center">
+                  Both Cursor modes lacked official steering support. durable-request implements it for both — free of request.
+                </p>
               </div>
             </div>
           </div>
