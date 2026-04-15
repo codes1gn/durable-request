@@ -179,61 +179,64 @@ export function Steering() {
         <ScrollReveal delay={0.1}>
           <div className="mb-20">
             <h2 className="text-xl font-bold mb-4 text-center">Platform Availability</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              {[
-                {
-                  platform: "Cursor IDE",
-                  supported: true,
-                  cost: "Free of request",
-                  detail: "preToolUse hook injects at the next Shell call inside the same conversation. Zero extra API calls.",
-                },
-                {
-                  platform: "Cursor CLI",
-                  supported: true,
-                  cost: "Free of request",
-                  detail: "Same hook as IDE. Works inside tmux sessions alongside checkpoint.sh.",
-                },
-                {
-                  platform: "Claude Code / Codex",
-                  supported: true,
-                  cost: "Free of request",
-                  detail: "Hook fires inside the running conversation. No separate request consumed.",
-                },
-                {
-                  platform: "Copilot / VSCode",
-                  supported: false,
-                  cost: "Not supported",
-                  detail: "Copilot's API does not expose Shell-level tool interception. The steering message cannot be surfaced to the model without an extra request.",
-                },
-              ].map((p) => (
-                <div
-                  key={p.platform}
-                  className={`rounded-xl border bg-[var(--card)] p-5 ${
-                    p.supported
-                      ? "border-emerald-500/25"
-                      : "border-[var(--border)] opacity-60"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-bold">{p.platform}</span>
-                    <span
-                      className={`text-base font-bold ${
-                        p.supported ? "text-emerald-400" : "text-rose-400"
-                      }`}
-                    >
-                      {p.supported ? "✓" : "✗"}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              {/* Cursor IDE + CLI — combined unsupported block */}
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 opacity-60 sm:col-span-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-bold">Cursor IDE</span>
+                  <span className="text-base font-bold text-rose-400">✗</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-rose-400 mb-3">Not supported</div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold">Cursor CLI</span>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase tracking-wider">
+                      Now Supported
                     </span>
                   </div>
-                  <div
-                    className={`text-xs font-mono font-bold mb-2 ${
-                      p.supported ? "text-emerald-400" : "text-rose-400"
-                    }`}
-                  >
-                    {p.cost}
-                  </div>
-                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">{p.detail}</p>
+                  <span className="text-base font-bold text-emerald-400">✓</span>
                 </div>
-              ))}
+                <div className="text-xs font-mono font-bold text-emerald-400 mb-3">Free of request</div>
+                <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  Cursor IDE's preToolUse hook does not surface to the model. Cursor CLI is now supported — the hook injects steering inside the running tmux session with no extra API call.
+                </p>
+              </div>
+
+              {/* Claude Code */}
+              <div className="rounded-xl border border-emerald-500/25 bg-[var(--card)] p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-bold">Claude Code</span>
+                  <span className="text-base font-bold text-emerald-400">✓</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-emerald-400 mb-3">Free of request</div>
+                <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  Hook fires inside the running conversation via AskUserQuestion interception. No separate request consumed.
+                </p>
+              </div>
+
+              {/* Codex */}
+              <div className="rounded-xl border border-emerald-500/25 bg-[var(--card)] p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-bold">Codex</span>
+                  <span className="text-base font-bold text-emerald-400">✓</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-emerald-400 mb-3">Free of request</div>
+                <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  Shell-level injection works the same way as Cursor CLI. Steering delivered in-continuation at zero extra cost.
+                </p>
+              </div>
+
+              {/* Copilot IDE */}
+              <div className="rounded-xl border border-amber-500/25 bg-[var(--card)] p-5 sm:col-span-2 lg:col-span-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-bold">Copilot IDE (VSCode)</span>
+                  <span className="text-base font-bold text-amber-400">✓</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-amber-400 mb-3">Supported — costs +1 request per steering message</div>
+                <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  Copilot's question carousel surfaces the steering message to the model, but requires opening a new API round-trip to deliver it. The message arrives correctly, but is not truly "free of request."
+                </p>
+              </div>
             </div>
           </div>
         </ScrollReveal>

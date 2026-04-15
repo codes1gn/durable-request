@@ -28,7 +28,7 @@ const releases: Release[] = [
       { type: "changed", text: "Status bar label now shows the queued message: ⚡ Steering pending — \"focus on the API layer\"" },
       { type: "fixed", text: "Status bar flickered back to normal after 30 s even if message was not consumed — removed the 30-second timeout, replaced with file-based polling" },
       { type: "fixed", text: "Extension deactivation now properly clears the poll interval without leaking timers" },
-      { type: "note", text: "Platform availability: steering supported in Cursor IDE, Cursor CLI, Claude Code, Codex (free of request). Copilot / VSCode: ✗ not supported — no Shell-level tool interception available" },
+      { type: "note", text: "Platform availability: Cursor CLI (now supported, free), Claude Code (free), Codex (free), Copilot IDE (supported, +1 request). Cursor IDE: ✗ not supported — preToolUse hook does not surface to model" },
     ],
   },
   {
