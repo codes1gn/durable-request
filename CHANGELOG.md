@@ -2,6 +2,44 @@
 
 All notable changes to durable-request are documented here.
 
+## [1.2.0] - 2026-04-15
+
+### Added
+- **In-continuation steering** — agent now acknowledges steering messages with a mandatory
+  bounding box visible in the reply, not just a plain text line:
+  ```
+  ╔══════════════════════════════════════════════════════════════╗
+  ║ ⚡ STEERING RECEIVED                                          ║
+  ╠══════════════════════════════════════════════════════════════╣
+  ║ Message : <exact steering text>                               ║
+  ╠══════════════════════════════════════════════════════════════╣
+  ║ Response: <adjusted plan, ≤3 lines>                           ║
+  ╚══════════════════════════════════════════════════════════════╝
+  ```
+  The box is placed at the top of the reply, before any other content.
+- **F8b test feature** — pattern matcher now verifies the full bounding box structure
+  (header + Message row + Response row) in addition to F8 header presence and F8a shell visibility
+- **Test runner scripts** — `testing/scripts/run-workload.sh` and `testing/scripts/run-all.sh`
+  for end-to-end session automation with `--filter`, `--runs`, `--dry-run`, `--analyze-only`
+- **First full baseline run** — `testing/results/run-2026-04-15/` captures 10 workload
+  transcripts; 10/10 workloads pass, 12/12 features at 100% on first sample
+
+### Changed
+- **Optimized checkpoint options** — A/B/C options are now more concisely worded and
+  context-specific; the D (freeform) option is always present but unlabeled
+- **Stationary status bar** — yellow "Steering pending" badge no longer blinks or resets
+  after 30 seconds; it stays solid until the steering-message file is consumed by the hook,
+  then clears within 1 second via adaptive polling (1 s while pending, 5 s idle)
+- **Status bar label** — button now shows the queued message text:
+  `⚡ Steering pending — "focus on the API layer"` for immediate visibility
+- **TodoWrite list stability** — cleanup threshold is enforced strictly at >20 items;
+  `durable-checkpoint` is never deleted regardless of status; active todos are always preserved
+
+### Fixed
+- Status bar would flicker back to normal after 30 s even if the steering message had not
+  been consumed (removed the 30-second timeout, replaced with file-based polling)
+- Extension deactivation now properly clears the poll interval without leaking timers
+
 ## [1.1.4] - 2026-04-14
 
 ### Changed
