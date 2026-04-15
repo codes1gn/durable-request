@@ -64,6 +64,14 @@ export function Navbar() {
             <span className="text-amber-400">⚡</span> Steering
           </Link>
           <Link
+            to="/health"
+            className={`hover:text-[var(--foreground)] transition-colors ${
+              location.pathname === "/health" ? "text-[var(--foreground)] font-semibold" : ""
+            }`}
+          >
+            <span className="text-emerald-400 mr-0.5">●</span> Health
+          </Link>
+          <Link
             to="/cli-session"
             className={`hover:text-[var(--foreground)] transition-colors ${
               location.pathname === "/cli-session" ? "text-[var(--foreground)] font-semibold" : ""

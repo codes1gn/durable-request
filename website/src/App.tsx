@@ -6,6 +6,7 @@ import { Changelog } from "./pages/Changelog";
 import { CLISession } from "./pages/CLISession";
 import { Roadmap } from "./pages/Roadmap";
 import { Steering } from "./pages/Steering";
+import { HealthCheck } from "./pages/HealthCheck";
 
 export function App() {
   return (
@@ -19,6 +20,7 @@ export function App() {
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/cli-session" element={<CLISession />} />
             <Route path="/steering" element={<Steering />} />
+            <Route path="/health" element={<HealthCheck />} />
           </Routes>
         </main>
         <Footer />
