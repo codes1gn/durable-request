@@ -148,11 +148,15 @@ export function Steering() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
             In-Continuation Steering
+            <span className="block text-amber-400 text-2xl sm:text-3xl font-bold mt-1">
+              Free of Request
+            </span>
           </h1>
           <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto leading-relaxed">
-            Redirect the agent mid-task — without interrupting it. Send a message any time;
-            the agent picks it up at its next Shell call, acknowledges it visibly, and continues
-            in the same request with your new direction.
+            Redirect the agent mid-task — without interrupting it, and without consuming an
+            extra API request. Send a message any time; the hook injects it at the next Shell
+            call inside the <em>same conversation</em>, the agent acknowledges visibly, and
+            continues with your new direction.
           </p>
 
           {/* Key properties row */}
@@ -170,6 +174,67 @@ export function Steering() {
             ))}
           </div>
         </motion.div>
+
+        {/* ── Platform Compatibility ── */}
+        <ScrollReveal delay={0.1}>
+          <div className="mb-20">
+            <h2 className="text-xl font-bold mb-4 text-center">Platform Availability</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              {[
+                {
+                  platform: "Cursor IDE",
+                  icon: "✦",
+                  status: "Full support",
+                  cost: "Free of request",
+                  detail: "Hook injects at next Shell call inside the same conversation. No extra API call.",
+                  statusColor: "text-emerald-400",
+                  costColor: "text-emerald-400",
+                  border: "border-emerald-500/25",
+                },
+                {
+                  platform: "Cursor CLI",
+                  icon: "⬛",
+                  status: "Full support",
+                  cost: "Free of request",
+                  detail: "Same preToolUse hook as IDE. Works in tmux sessions with checkpoint.sh.",
+                  statusColor: "text-emerald-400",
+                  costColor: "text-emerald-400",
+                  border: "border-emerald-500/25",
+                },
+                {
+                  platform: "Claude Code / Codex",
+                  icon: "◆",
+                  status: "Full support",
+                  cost: "Free of request",
+                  detail: "Hook fires inside the running conversation. No separate request consumed.",
+                  statusColor: "text-emerald-400",
+                  costColor: "text-emerald-400",
+                  border: "border-emerald-500/25",
+                },
+                {
+                  platform: "Copilot / VSCode",
+                  icon: "◉",
+                  status: "Supported",
+                  cost: "+1 request",
+                  detail: "Copilot's question carousel mechanism requires a separate API request to surface the steering message to the model.",
+                  statusColor: "text-amber-400",
+                  costColor: "text-amber-400",
+                  border: "border-amber-500/25",
+                },
+              ].map((p) => (
+                <div key={p.platform} className={`rounded-xl border ${p.border} bg-[var(--card)] p-5`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-lg ${p.statusColor}`}>{p.icon}</span>
+                    <span className="text-sm font-bold">{p.platform}</span>
+                  </div>
+                  <div className={`text-xs font-semibold mb-0.5 ${p.statusColor}`}>{p.status}</div>
+                  <div className={`text-xs font-mono font-bold mb-2 ${p.costColor}`}>{p.cost}</div>
+                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">{p.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
 
         {/* ═══════════════════════════════════════════════
             PART 1: USER VIEW

@@ -15,6 +15,23 @@ interface Release {
 
 const releases: Release[] = [
   {
+    version: "1.2.0",
+    date: "2026-04-15",
+    highlight: "In-Continuation Steering — Redirect the Agent, Free of Request",
+    entries: [
+      { type: "added", text: "In-continuation steering: redirect the agent mid-task without interrupting or consuming an extra request — the hook injects your message at the next Shell call inside the same conversation" },
+      { type: "added", text: "Mandatory STEERING RECEIVED bounding box: agent must echo message verbatim + adjusted plan in a visible box at the top of its reply" },
+      { type: "added", text: "F8b test feature: pattern matcher verifies the full bounding box structure (⚡ STEERING RECEIVED header + Message row + Response row)" },
+      { type: "added", text: "Test runner scripts: run-workload.sh and run-all.sh for end-to-end session automation with --filter, --runs, --dry-run, --analyze-only modes" },
+      { type: "added", text: "First full baseline test run: testing/results/run-2026-04-15/ — 10/10 workloads pass, 12/12 features at 100% on first sample" },
+      { type: "changed", text: "Stationary status bar: yellow Steering pending badge stays solid until file is consumed by hook, then clears within 1 second via adaptive polling (1 s pending / 5 s idle)" },
+      { type: "changed", text: "Status bar label now shows the queued message: ⚡ Steering pending — \"focus on the API layer\"" },
+      { type: "fixed", text: "Status bar flickered back to normal after 30 s even if message was not consumed — removed the 30-second timeout, replaced with file-based polling" },
+      { type: "fixed", text: "Extension deactivation now properly clears the poll interval without leaking timers" },
+      { type: "note", text: "Platform availability: steering works in Cursor IDE, Cursor CLI, Claude Code, Codex. Copilot / VSCode: supported but the hook's question carousel costs one extra API request per steering message" },
+    ],
+  },
+  {
     version: "1.1.0",
     date: "2026-04-12",
     highlight: "Cursor CLI Checkpoint — True Durable Loop in Terminal",
