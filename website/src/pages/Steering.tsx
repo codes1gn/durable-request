@@ -10,43 +10,43 @@ import screenshot5 from "../assets/企业微信截图_17762225739321.png";
 const userSteps = [
   {
     num: "01",
-    title: "Click the status bar button",
-    desc: "While the agent is working, click the ⚡ Steer button in the VS Code / Cursor status bar (or press Ctrl+Shift+S). The button turns yellow the moment a message is queued.",
+    title: "Press Ctrl+Shift+S — input box appears",
+    desc: "While the agent is working, press Ctrl+Shift+S (or Cmd+Shift+S on Mac). A lightweight input box appears inline. Type your instruction and press Enter to queue it.",
     color: "text-amber-400",
     bg: "bg-amber-500/10",
-    screenshot: screenshot4,
-    screenshotAlt: "Yellow Steering status bar button in Cursor IDE",
-    caption: "The status bar button turns yellow and shows your queued message",
+    screenshot: screenshot2,
+    screenshotAlt: "Steering message input box prompt",
+    caption: "The input box appears immediately — type and press Enter to send",
   },
   {
     num: "02",
-    title: "Type your steering message",
-    desc: "A lightweight input box appears. Type your instruction — redirect the agent, change scope, skip steps, or flag an urgent issue. Press Enter to queue it.",
+    title: "Message queued — notification confirms",
+    desc: "A toast notification confirms the message is queued. The agent has not been interrupted — it keeps running and will see your message at its next Shell tool call.",
     color: "text-orange-400",
     bg: "bg-orange-500/10",
-    screenshot: screenshot2,
-    screenshotAlt: "Steering message input box prompt",
-    caption: "The input box prompts for a steering message inline",
+    screenshot: screenshot3,
+    screenshotAlt: "Steering queued notification toast",
+    caption: "Instant confirmation; agent continues without interruption",
   },
   {
     num: "03",
-    title: "Message is queued — you're notified",
-    desc: "A toast notification confirms the message is queued. The agent has not been interrupted — it will see the message at its next tool call.",
+    title: "Status bar turns yellow — message pending",
+    desc: "The ⚡ Steer button in the status bar turns yellow and shows your queued message. It stays yellow until the hook delivers the message to the agent — no blinking, no timeout.",
     color: "text-yellow-400",
     bg: "bg-yellow-500/10",
-    screenshot: screenshot3,
-    screenshotAlt: "Steering queued notification toast",
-    caption: "Queued notification appears immediately; agent continues without interruption",
+    screenshot: screenshot4,
+    screenshotAlt: "Yellow Steering status bar button in Cursor IDE",
+    caption: "Stationary yellow badge holds until the message is consumed",
   },
   {
     num: "04",
     title: "Agent acknowledges with a bounding box",
-    desc: "At the agent's next Shell tool call, the hook injects your message into the tool output. The agent sees it and must respond with the mandatory STEERING RECEIVED box — your message verbatim, plus the adjusted plan.",
+    desc: "At the agent's next Shell tool call, the hook injects your message into the tool output. The agent must respond with the mandatory STEERING RECEIVED box — your message verbatim, plus the adjusted plan.",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     screenshot: screenshot5,
     screenshotAlt: "Agent STEERING RECEIVED bounding box acknowledgement",
-    caption: "Agent echoes your message and its adjusted plan in a visible bounding box",
+    caption: "Agent echoes your message and adjusted plan — status bar clears within 1 second",
   },
 ];
 
@@ -269,12 +269,7 @@ export function Steering() {
         ═══════════════════════════════════════════════ */}
         <ScrollReveal>
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-xs font-mono px-2 py-0.5 rounded border bg-amber-500/10 text-amber-400 border-amber-500/30">
-                PART 1
-              </span>
-              <h2 className="text-2xl font-bold">User Experience</h2>
-            </div>
+            <h2 className="text-2xl font-bold mb-2">How to Use</h2>
             <p className="text-sm text-[var(--muted-foreground)] mb-10">
               Four steps from your message to the agent's visible acknowledgement.
             </p>
@@ -370,12 +365,7 @@ export function Steering() {
         ═══════════════════════════════════════════════ */}
         <ScrollReveal>
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-xs font-mono px-2 py-0.5 rounded border bg-orange-500/10 text-orange-400 border-orange-500/30">
-                PART 2
-              </span>
-              <h2 className="text-2xl font-bold">System Design</h2>
-            </div>
+            <h2 className="text-2xl font-bold mb-2">System Design</h2>
             <p className="text-sm text-[var(--muted-foreground)] mb-10">
               How the three-layer pipeline delivers your message reliably without interrupting the agent.
             </p>
