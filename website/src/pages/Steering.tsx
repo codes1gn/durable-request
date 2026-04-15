@@ -159,20 +159,6 @@ export function Steering() {
             continues with your new direction.
           </p>
 
-          {/* Key properties row */}
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
-            {[
-              { label: "Non-Interrupting", icon: "🔀", desc: "Agent never stops mid-tool" },
-              { label: "Visible ACK", icon: "📋", desc: "Mandatory bounding box reply" },
-              { label: "Stationary UI", icon: "🟡", desc: "Status bar holds until consumed" },
-            ].map((p) => (
-              <div key={p.label} className="rounded-xl border bg-[var(--card)] p-4 text-center">
-                <div className="text-2xl mb-1">{p.icon}</div>
-                <div className="text-sm font-semibold mb-0.5">{p.label}</div>
-                <div className="text-xs text-[var(--muted-foreground)]">{p.desc}</div>
-              </div>
-            ))}
-          </div>
         </motion.div>
 
         {/* ── Platform Compatibility ── */}
@@ -180,12 +166,17 @@ export function Steering() {
           <div className="mb-20">
             <h2 className="text-xl font-bold mb-4 text-center">Platform Availability</h2>
             <div className="space-y-4 max-w-4xl mx-auto">
-              {/* Row 1: Claude Code + Codex + Copilot — all supported */}
+              {/* Row 1: Claude Code + Codex (newly supported) + Copilot */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Claude Code */}
+                {/* Claude Code — newly supported */}
                 <div className="rounded-xl border border-emerald-500/25 bg-[var(--card)] p-5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Claude Code</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold">Claude Code</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase tracking-wider">
+                        New in v1.2
+                      </span>
+                    </div>
                     <span className="text-base font-bold text-emerald-400">✓</span>
                   </div>
                   <div className="text-xs font-mono font-bold text-emerald-400 mb-3">Free of request</div>
@@ -194,10 +185,15 @@ export function Steering() {
                   </p>
                 </div>
 
-                {/* Codex */}
+                {/* Codex — newly supported */}
                 <div className="rounded-xl border border-emerald-500/25 bg-[var(--card)] p-5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold">Codex</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold">Codex</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase tracking-wider">
+                        New in v1.2
+                      </span>
+                    </div>
                     <span className="text-base font-bold text-emerald-400">✓</span>
                   </div>
                   <div className="text-xs font-mono font-bold text-emerald-400 mb-3">Free of request</div>
@@ -214,49 +210,32 @@ export function Steering() {
                   </div>
                   <div className="text-xs font-mono font-bold text-amber-400 mb-3">+1 request per message</div>
                   <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                    Copilot's question carousel delivers the message correctly, but requires a new API round-trip.
+                    Question carousel delivers the message, but requires a new API round-trip.
                   </p>
                 </div>
               </div>
 
-              {/* Row 2: Cursor IDE + CLI — both unsupported, CLI newly added */}
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-mono px-2 py-0.5 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400 uppercase tracking-wider">
-                    Previously unsupported
-                  </span>
-                  <span className="text-xs text-[var(--muted-foreground)]">
-                    Neither Cursor IDE nor Cursor CLI supported steering natively
-                  </span>
+              {/* Row 2: Cursor IDE + CLI — both not supported */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-60">
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold">Cursor IDE</span>
+                    <span className="text-base font-bold text-rose-400">✗</span>
+                  </div>
+                  <div className="text-xs font-mono font-bold text-rose-400 mb-3">Not supported</div>
+                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                    preToolUse hook output does not surface to the model in the GUI editor.
+                  </p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Cursor IDE */}
-                  <div className="rounded-lg border border-rose-500/15 bg-[var(--background)] p-4 opacity-70">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold">Cursor IDE</span>
-                      <span className="text-base font-bold text-rose-400">✗</span>
-                    </div>
-                    <div className="text-xs font-mono font-bold text-rose-400 mb-2">Still not supported</div>
-                    <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                      preToolUse hook output does not surface to the model in the GUI editor.
-                    </p>
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold">Cursor CLI</span>
+                    <span className="text-base font-bold text-rose-400">✗</span>
                   </div>
-
-                  {/* Cursor CLI — newly supported */}
-                  <div className="rounded-lg border border-emerald-500/30 bg-[var(--background)] p-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold">Cursor CLI</span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 uppercase tracking-wider">
-                          Now Supported ✓
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-xs font-mono font-bold text-emerald-400 mb-2">Free of request</div>
-                    <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                      durable-request v1.2 adds steering for Cursor CLI — Shell command injection works in tmux sessions with no extra API call.
-                    </p>
-                  </div>
+                  <div className="text-xs font-mono font-bold text-rose-400 mb-3">Not supported</div>
+                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                    Shell command injection via updated_input does not work in non-interactive CLI mode.
+                  </p>
                 </div>
               </div>
             </div>
