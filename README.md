@@ -48,7 +48,7 @@ Without this skill:                         With this skill:
   5 requests, 5 things done.
 ```
 
-With durable-request installed, the agent asks what to do next instead of stopping. You stay in the same session, keep the context, and get more done per request.
+With durable-request installed, the agent asks what to do next instead of stopping. You stay in the same session, keep the context, and get more done per request. Mid-task, you can also send steering messages to redirect the agent without interrupting it.
 
 ## What It Does
 
@@ -128,54 +128,35 @@ Validated across **3 epochs** with **170 total subagent experiments**.
 
 ## Installation
 
-### Quick Install (git clone + copy)
+### Recommended — Let Your AI Agent Install It
+
+Paste this into any AI agent chat (Cursor, Claude Code, Codex, etc.):
+
+```
+Install durable-request by following install.md at git@git.enflame.cn:skills/durablerequest.git
+```
+
+The agent clones the repo, reads `install.md`, and handles all three components automatically: skill package, steering runtime, and Cursor extension.
+
+### Manual
 
 ```bash
-# 1. Clone the repo
-git clone git@git.enflame.cn:skills/durablerequest.git /tmp/durable-request
+# Clone
+git clone git@git.enflame.cn:skills/durablerequest.git /tmp/dr
 
-# 2. Install skill files to Cursor (personal scope)
+# Install skill package (Cursor)
 DIR=~/.cursor/skills/durable-request && mkdir -p "$DIR" && \
-cp /tmp/durable-request/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
-chmod +x "$DIR"/*.sh "$DIR/steer"
+  cp /tmp/dr/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
+  chmod +x "$DIR"/*.sh "$DIR/steer"
 
-# 3. Install steering feature (Cursor IDE)
-/tmp/durable-request/install-steering.sh
+# Install steering runtime + Cursor extension (Cursor only)
+cd /tmp/dr && bash install-steering.sh && cd -
 
-# 4. Clean up
-rm -rf /tmp/durable-request
+# Cleanup
+rm -rf /tmp/dr
 ```
 
-### For Agents (Recommended)
-
-Paste this single line into any AI agent chat — it will install itself:
-
-```
-Install durable-request: clone git@git.enflame.cn:skills/durablerequest.git, copy skill/ contents to skill directories per install.md, then run install-steering.sh for Cursor steering.
-```
-
-The agent handles everything: cloning the repo, creating directories, copying skill files, and configuring steering hooks.
-
-### Manual (All Platforms)
-
-```bash
-# 1. Clone the repo (SSH — requires git.enflame.cn account)
-git clone git@git.enflame.cn:skills/durablerequest.git /tmp/durable-request
-
-# 2. Pick your platform directory and copy skill files
-DIR=~/.cursor/skills/durable-request   # ← change for your platform
-mkdir -p "$DIR"
-cp /tmp/durable-request/skill/* "$DIR/"
-chmod +x "$DIR"/*.sh "$DIR/steer" 2>/dev/null || true
-
-# 3. (Cursor only) Install steering feature
-/tmp/durable-request/install-steering.sh
-
-# 4. Clean up
-rm -rf /tmp/durable-request
-```
-
-See [install.md](install.md) for all platform paths and detailed instructions.
+See [install.md](install.md) for full step-by-step instructions and platform-specific paths.
 
 ---
 

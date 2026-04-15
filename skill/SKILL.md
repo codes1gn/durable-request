@@ -1,7 +1,7 @@
 ---
 name: durable-request
 author: Heng Shi <heng.shi@enflame-tech.com>
-description: Universal end-of-task continuation gate. Forces every agent turn that completes work to present an interactive checkpoint using the environment's builtin interactive tool instead of silently finishing. Applies to ALL tasks — coding, writing, debugging, research, analysis, refactoring, any prompt. Use always, on every task completion, before ending any turn where work was performed.
+description: Durable request skill — keeps every AI agent conversation alive across multiple tasks instead of silently finishing. AGENT SHOULD STRICTLY FOLLOW THIS PROTOCOL WHEN ACTIVATED. ONLY activate when the user explicitly invokes.
 ---
 
 # Durable Request — Never End Silently

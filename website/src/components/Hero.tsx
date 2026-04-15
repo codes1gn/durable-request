@@ -125,7 +125,7 @@ export function Hero() {
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[var(--muted-foreground)]">
-              Zero dependencies — one file
+              One install — agent skill + steering hooks + IDE extension
             </span>
           </motion.div>
 
@@ -133,12 +133,10 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight max-w-3xl leading-[1.2] text-[var(--muted-foreground)]"
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight max-w-4xl leading-[1.1] text-[var(--muted-foreground)]"
           >
-            Your Agent{" "}
-            <span className="text-gradient font-extrabold text-[var(--foreground)]">Requests</span>
-            {" "}Should Give You More{" "}
-            <span className="text-gradient font-extrabold text-[var(--foreground)]">Value</span>
+            Work, checkpoint, respond, repeat —{" "}
+            <span className="text-gradient font-extrabold text-[var(--foreground)]">all in one request.</span>
           </motion.h1>
 
           <motion.p
@@ -147,8 +145,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-6 text-lg sm:text-xl text-[var(--muted-foreground)] max-w-3xl leading-relaxed"
           >
-            A single skill file that transforms AI agents from one-shot tools into
-            interactive partners. Work, checkpoint, respond, repeat — all in one request.
+            A skill package that transforms AI agents from one-shot tools into
+            interactive partners. Structured checkpoints, mid-task steering, and
+            context that never resets — across Cursor, Claude Code, and Codex.
           </motion.p>
 
           <motion.div
@@ -163,7 +162,7 @@ export function Hero() {
                          hover:bg-accent-600 transition-all shadow-lg shadow-accent-500/25
                          hover:shadow-accent-500/40"
             >
-              Get Started — It's One File
+              Install durable-request
             </a>
             <a
               href="#features"

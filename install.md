@@ -6,9 +6,9 @@ This guide is designed to be read and executed by an LLM agent.
 
 Three components:
 
-1. **Skill file** (`skill/SKILL.md`) — teaches any AI agent to present an interactive checkpoint after completing any task. Works on all platforms. No runtime, no dependencies.
-2. **CLI checkpoint tool** (`skill/checkpoint.sh` + `skill/checkpoint-ui.sh`, Cursor CLI only) — enables true blocking interactive checkpoints in Cursor CLI via tmux split panes.
-3. **Steering feature** (Cursor only) — mid-task instructions via CLI, tmux popup, or IDE extension. Requires running `install-steering.sh`.
+1. **Skill package** (`skill/` — 7 files) — teaches any AI agent to present interactive checkpoints, handle steering acknowledgements, and manage the durable loop. Works on all platforms. Includes SKILL.md, checkpoint scripts, steering tools, and todo-cleanup.
+2. **CLI checkpoint tool** (`skill/checkpoint.sh` + `skill/checkpoint-ui.sh`, Cursor CLI only) — enables true blocking interactive checkpoints in Cursor CLI via tmux split panes. Already included in the skill package above.
+3. **Steering runtime + IDE extension** (Cursor only) — mid-task instructions via CLI (`steer`), tmux popup, or Cursor IDE extension (status bar button + Ctrl+Shift+S). Installed by running `install-steering.sh`.
 
 ## Step 1: Clone the Repository
 
@@ -18,9 +18,9 @@ Clone the repo via SSH (requires a git.enflame.cn account with SSH key configure
 git clone git@git.enflame.cn:skills/durablerequest.git /tmp/durable-request-repo
 ```
 
-## Step 2: Install to Agent Skill Directories
+## Step 2: Install Skill Package to Agent Skill Directories
 
-Copy the skill file into the relevant directories for every platform the user has. Create directories if they don't exist.
+Copy all skill files into the relevant directories for every platform the user has. Create directories if they don't exist.
 
 Install to **project-level** (current directory) and **personal** (`~`) for each platform:
 
@@ -36,28 +36,29 @@ Install to **project-level** (current directory) and **personal** (`~`) for each
 | Cody | `.cody/skills/durable-request/` | `~/.cody/skills/durable-request/` |
 | Continue | `.continue/skills/durable-request/` | `~/.continue/skills/durable-request/` |
 
-For each directory in the table above, run:
+For **Cursor** (personal), run:
+
+```bash
+DIR=~/.cursor/skills/durable-request && mkdir -p "$DIR" && \
+cp /tmp/durable-request-repo/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
+chmod +x "$DIR"/*.sh "$DIR/steer"
+```
+
+For **other platforms** (SKILL.md is sufficient — no shell scripts needed):
 
 ```bash
 mkdir -p <directory> && cp /tmp/durable-request-repo/skill/SKILL.md <directory>/SKILL.md
 ```
 
-## Step 3: Install CLI Checkpoint Tool (Cursor CLI only)
+## Step 3: Configure tmux for Cursor CLI (Cursor CLI only)
 
-This step is **only for Cursor CLI** users. Skip for other platforms.
+This step is **only for Cursor CLI** users. The checkpoint scripts were already copied in Step 2. This step configures tmux, which is required for the blocking checkpoint UI.
 
-The CLI checkpoint tool enables true blocking interactive checkpoints in Cursor CLI via tmux split panes.
+Skip this step if:
+- You are installing for Cursor IDE (graphical editor), not Cursor CLI
+- You are installing for any non-Cursor platform
 
-### 3a: Copy checkpoint scripts from the cloned repo
-
-```bash
-cp /tmp/durable-request-repo/skill/checkpoint.sh ~/.cursor/skills/durable-request/checkpoint.sh
-cp /tmp/durable-request-repo/skill/checkpoint-ui.sh ~/.cursor/skills/durable-request/checkpoint-ui.sh
-chmod +x ~/.cursor/skills/durable-request/checkpoint.sh
-chmod +x ~/.cursor/skills/durable-request/checkpoint-ui.sh
-```
-
-### 3b: Set up tmux + locale (required for Cursor CLI)
+### 3a: Set up tmux + locale (required for Cursor CLI)
 
 Add these to `~/.bashrc`:
 
@@ -84,7 +85,7 @@ TMUXEOF
 
 If tmux is already running, kill it so it picks up the new config: `tmux kill-server`
 
-### 3c: Verify checkpoint scripts
+### 3b: Verify checkpoint scripts
 
 ```bash
 ls -la ~/.cursor/skills/durable-request/checkpoint*.sh
@@ -94,15 +95,15 @@ ls -la ~/.cursor/skills/durable-request/checkpoint*.sh
 
 This step is **only for Cursor** users (both IDE and CLI). Skip for other platforms.
 
-Run the one-click installation script:
+Run the one-click installation script **from the repo directory** so it can resolve `./skill/` locally:
 
 ```bash
-/tmp/durable-request-repo/install-steering.sh
+cd /tmp/durable-request-repo && bash install-steering.sh
 ```
 
 This installs:
 - `steer` CLI tool to `~/.durable-request/bin/`
-- `steer-ui.sh` tmux popup to `~/.durable-request/skill/`
+- `steer-ui.sh` tmux popup to `~/.durable-request/bin/`
 - `steering-hook.sh` preToolUse hook to `~/.durable-request/hooks/`
 - Cursor hooks configuration to `~/.cursor/hooks.json`
 - tmux keybinding (prefix + S) to `~/.tmux.conf`
