@@ -1,0 +1,43 @@
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "First pass binary search is ready: standard lo/hi loop returning index or -1.",
+    "options": [
+      {"id": "A", "label": "Continue — add empty list and single-element handling"},
+      {"id": "B", "label": "Iterate — handle unsorted input defensively"},
+      {"id": "C", "label": "Iterate — define behavior for duplicates"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: A
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Iteration 1 covers empty lists and bounds with safe mid handling.",
+    "options": [
+      {"id": "A", "label": "Continue — add explicit checks for None inputs"},
+      {"id": "B", "label": "Iterate — require sorted order or raise"},
+      {"id": "C", "label": "Iterate — return insertion index instead of -1"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: B
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Iteration 2 adds optional strict_sorted validation. Choose Done when satisfied.",
+    "options": [
+      {"id": "A", "label": "Continue — add bisect-style insertion index"},
+      {"id": "B", "label": "Iterate — add key= function support"},
+      {"id": "done", "label": "Done"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: done
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})

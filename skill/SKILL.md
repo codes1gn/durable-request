@@ -399,11 +399,25 @@ Agent sees steering in context and adjusts behavior
 
 **When you see this in Shell output, you MUST:**
 
-1. **Immediately acknowledge** by stating: `**[durable-request]** Received steering: "<message>"`
+1. **Immediately acknowledge** using the bounding-box format shown below
 2. **Adjust your approach** based on the user's direction
 3. **Continue with the modified plan**
 
 **This is NOT optional.** Failing to acknowledge steering is a protocol violation.
+
+### Steering Acknowledgement Format — MANDATORY BOUNDING BOX
+
+You MUST repeat the steering message verbatim AND your response inside a bounding box in your reply text. Use this exact format:
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║ ⚡ STEERING RECEIVED                                          ║
+╠══════════════════════════════════════════════════════════════╣
+║ Message : <exact steering text from the box>                  ║
+╠══════════════════════════════════════════════════════════════╣
+║ Response: <your acknowledgement and adjusted plan, ≤2 lines>  ║
+╚══════════════════════════════════════════════════════════════╝
+```
 
 **Example:**
 
@@ -416,8 +430,24 @@ If Shell output contains:
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
-Your response MUST include:
-> **[durable-request]** Received steering: "focus on the API layer". Adjusting current task — I'll prioritize the API implementation over the UI changes we were working on.
+Your reply MUST contain:
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║ ⚡ STEERING RECEIVED                                          ║
+╠══════════════════════════════════════════════════════════════╣
+║ Message : focus on the API layer                              ║
+╠══════════════════════════════════════════════════════════════╣
+║ Response: Understood. Pivoting to the API layer now —         ║
+║           deprioritising UI changes until you say otherwise.  ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+Rules for the bounding box:
+- **Always use the full box** — never abbreviate or omit it
+- **Message line**: copy the steering text exactly as received
+- **Response lines**: keep to ≤ 3 lines; be concrete about what changes
+- **Place the box at the very top** of your reply, before any other content
 
 ### Steering Detection Protocol
 

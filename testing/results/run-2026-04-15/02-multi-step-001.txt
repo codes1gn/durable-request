@@ -1,0 +1,78 @@
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"},
+    {"id": "impl-stack", "content": "Implement Stack in stack.py", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Plan is ready: implement Stack (push, pop, peek, is_empty) in stack.py then draft README usage.",
+    "options": [
+      {"id": "A", "label": "Continue — create stack.py with a list-backed Stack now"},
+      {"id": "B", "label": "Iterate — prefer collections.deque for O(1) pops"},
+      {"id": "C", "label": "Pause — show API sketch only before writing files"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: A
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "impl-stack", "status": "completed"},
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "stack.py is in place with push, pop, peek, and is_empty plus clear errors on empty pop/peek.",
+    "options": [
+      {"id": "A", "label": "Continue — add README usage section next"},
+      {"id": "B", "label": "Iterate — switch internals to deque"},
+      {"id": "C", "label": "Add minimal unit tests in test_stack.py"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: A
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "readme-snippet", "content": "Draft README usage for Stack", "status": "completed"},
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "README-style usage section is drafted with import, push/pop/peek flow. What next?",
+    "options": [
+      {"id": "A", "label": "Continue — format README for your repo tone"},
+      {"id": "B", "label": "Iterate — add thread-safety note"},
+      {"id": "C", "label": "Mark work finished after a final review checkpoint"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: C
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Final review checkpoint: module plus README snippet are consistent and ready. Pick Done when finished.",
+    "options": [
+      {"id": "A", "label": "Iterate — tweak exception messages"},
+      {"id": "B", "label": "Continue — add tests before closing"},
+      {"id": "done", "label": "Done"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: done
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})

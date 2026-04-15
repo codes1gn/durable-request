@@ -1,0 +1,43 @@
+A process is an OS container with its own virtual address space; a thread is a schedulable unit inside a process sharing the address space.
+
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Explained how processes provide isolation and resource ownership while threads share a process address space and need synchronization.",
+    "options": [
+      {"id": "A", "label": "Go deeper on scheduling, kernel threads, and user-space threads"},
+      {"id": "B", "label": "Contrast IPC vs in-process locks with concrete examples"},
+      {"id": "C", "label": "Map this to Python (GIL), Java, or Go concurrency models"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: Map to Python GIL.
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})
+In CPython the GIL prevents multiple threads from executing Python bytecode in parallel for CPU-bound work. Threads help for I/O-bound concurrency; multiprocessing is used for CPU-bound parallelism.
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Added concise Python GIL angle plus when threads vs multiple processes are the pragmatic choice.",
+    "options": [
+      {"id": "A", "label": "Explain multiprocessing pitfalls (pickling, memory, spawn/fork)"},
+      {"id": "B", "label": "Compare asyncio tasks to OS threads for I/O-bound work"},
+      {"id": "C", "label": "Switch to another OS topic (virtual memory, syscalls, scheduling)"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})

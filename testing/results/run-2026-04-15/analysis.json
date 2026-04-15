@@ -1,0 +1,404 @@
+{
+  "workloads": [
+    {
+      "workload": "01-simple-task",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 2,
+          "feature": "Checkpoint after task completion"
+        },
+        "F2": {
+          "found": true,
+          "count": 1,
+          "feature": "TodoWrite + AskQuestion in same batch"
+        },
+        "F3": {
+          "found": true,
+          "count": 1,
+          "feature": "4 options (A/B/C context-generated + D empty)"
+        },
+        "F4": {
+          "found": true,
+          "count": 1,
+          "feature": "Task summary in prompt"
+        },
+        "F10": {
+          "found": true,
+          "count": 1,
+          "feature": "No silent completion"
+        }
+      },
+      "passed": 5,
+      "total": 5,
+      "success_rate": 1.0,
+      "file": "01-simple-task-001.txt"
+    },
+    {
+      "workload": "02-multi-step",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 4,
+          "feature": "Checkpoint after task completion"
+        },
+        "F2": {
+          "found": true,
+          "count": 1,
+          "feature": "TodoWrite + AskQuestion in same batch"
+        },
+        "F3": {
+          "found": true,
+          "count": 1,
+          "feature": "4 options (A/B/C context-generated + D empty)"
+        },
+        "F4": {
+          "found": true,
+          "count": 1,
+          "feature": "Task summary in prompt"
+        },
+        "F5": {
+          "found": true,
+          "count": 1,
+          "feature": "Multi-step checkpoint loop"
+        },
+        "F6": {
+          "found": true,
+          "count": 1,
+          "feature": "Durable loop (continue until Done)"
+        },
+        "F10": {
+          "found": true,
+          "count": 1,
+          "feature": "No silent completion"
+        }
+      },
+      "passed": 7,
+      "total": 7,
+      "success_rate": 1.0,
+      "file": "02-multi-step-001.txt"
+    },
+    {
+      "workload": "03-iterative",
+      "features": {
+        "F3": {
+          "found": true,
+          "count": 1,
+          "feature": "4 options (A/B/C context-generated + D empty)"
+        },
+        "F5": {
+          "found": true,
+          "count": 1,
+          "feature": "Multi-step checkpoint loop"
+        },
+        "F6": {
+          "found": true,
+          "count": 1,
+          "feature": "Durable loop (continue until Done)"
+        }
+      },
+      "passed": 3,
+      "total": 3,
+      "success_rate": 1.0,
+      "file": "03-iterative-001.txt"
+    },
+    {
+      "workload": "04-research",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 2,
+          "feature": "Checkpoint after task completion"
+        },
+        "F2": {
+          "found": true,
+          "count": 1,
+          "feature": "TodoWrite + AskQuestion in same batch"
+        },
+        "F4": {
+          "found": true,
+          "count": 1,
+          "feature": "Task summary in prompt"
+        },
+        "F10": {
+          "found": true,
+          "count": 1,
+          "feature": "No silent completion"
+        }
+      },
+      "passed": 4,
+      "total": 4,
+      "success_rate": 1.0,
+      "file": "04-research-001.txt"
+    },
+    {
+      "workload": "05-debug",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 2,
+          "feature": "Checkpoint after task completion"
+        },
+        "F2": {
+          "found": true,
+          "count": 1,
+          "feature": "TodoWrite + AskQuestion in same batch"
+        },
+        "F4": {
+          "found": true,
+          "count": 1,
+          "feature": "Task summary in prompt"
+        },
+        "F10": {
+          "found": true,
+          "count": 1,
+          "feature": "No silent completion"
+        }
+      },
+      "passed": 4,
+      "total": 4,
+      "success_rate": 1.0,
+      "file": "05-debug-001.txt"
+    },
+    {
+      "workload": "06-steering",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 1,
+          "feature": "Checkpoint after task completion"
+        },
+        "F8": {
+          "found": true,
+          "count": 1,
+          "feature": "Steering acknowledgment"
+        },
+        "F8a": {
+          "found": true,
+          "count": 1,
+          "feature": "Steering message visible in Shell output"
+        },
+        "F8b": {
+          "found": true,
+          "count": 1,
+          "feature": "Steering bounding box in agent reply"
+        }
+      },
+      "passed": 4,
+      "total": 4,
+      "success_rate": 1.0,
+      "file": "06-steering-001.txt"
+    },
+    {
+      "workload": "07-long-task",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 5,
+          "feature": "Checkpoint after task completion"
+        },
+        "F9": {
+          "found": true,
+          "count": 1,
+          "feature": "Todo cleanup at >20 items"
+        }
+      },
+      "passed": 2,
+      "total": 2,
+      "success_rate": 1.0,
+      "file": "07-long-task-001.txt"
+    },
+    {
+      "workload": "08-qa",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 2,
+          "feature": "Checkpoint after task completion"
+        },
+        "F10": {
+          "found": true,
+          "count": 1,
+          "feature": "No silent completion"
+        }
+      },
+      "passed": 2,
+      "total": 2,
+      "success_rate": 1.0,
+      "file": "08-qa-001.txt"
+    },
+    {
+      "workload": "09-subagent",
+      "features": {
+        "F7": {
+          "found": true,
+          "count": 1,
+          "feature": "Subagent conversational fallback"
+        }
+      },
+      "passed": 1,
+      "total": 1,
+      "success_rate": 1.0,
+      "file": "09-subagent-001.txt"
+    },
+    {
+      "workload": "10-composite",
+      "features": {
+        "F1": {
+          "found": true,
+          "count": 6,
+          "feature": "Checkpoint after task completion"
+        },
+        "F2": {
+          "found": true,
+          "count": 1,
+          "feature": "TodoWrite + AskQuestion in same batch"
+        },
+        "F3": {
+          "found": true,
+          "count": 1,
+          "feature": "4 options (A/B/C context-generated + D empty)"
+        },
+        "F4": {
+          "found": true,
+          "count": 1,
+          "feature": "Task summary in prompt"
+        },
+        "F5": {
+          "found": true,
+          "count": 1,
+          "feature": "Multi-step checkpoint loop"
+        },
+        "F6": {
+          "found": true,
+          "count": 1,
+          "feature": "Durable loop (continue until Done)"
+        },
+        "F10": {
+          "found": true,
+          "count": 1,
+          "feature": "No silent completion"
+        }
+      },
+      "passed": 7,
+      "total": 7,
+      "success_rate": 1.0,
+      "file": "10-composite-001.txt"
+    }
+  ],
+  "features": {
+    "F1": {
+      "name": "Checkpoint after task completion",
+      "passed": 8,
+      "total": 8,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F2": {
+      "name": "TodoWrite + AskQuestion in same batch",
+      "passed": 5,
+      "total": 5,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F3": {
+      "name": "4 options (A/B/C context-generated + D empty)",
+      "passed": 4,
+      "total": 4,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F4": {
+      "name": "Task summary in prompt",
+      "passed": 5,
+      "total": 5,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F10": {
+      "name": "No silent completion",
+      "passed": 6,
+      "total": 6,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F5": {
+      "name": "Multi-step checkpoint loop",
+      "passed": 3,
+      "total": 3,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F6": {
+      "name": "Durable loop (continue until Done)",
+      "passed": 3,
+      "total": 3,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F8": {
+      "name": "Steering acknowledgment",
+      "passed": 1,
+      "total": 1,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F8a": {
+      "name": "Steering message visible in Shell output",
+      "passed": 1,
+      "total": 1,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F8b": {
+      "name": "Steering bounding box in agent reply",
+      "passed": 1,
+      "total": 1,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F9": {
+      "name": "Todo cleanup at >20 items",
+      "passed": 1,
+      "total": 1,
+      "success_rate": 1.0,
+      "min_required": 5,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    },
+    "F7": {
+      "name": "Subagent conversational fallback",
+      "passed": 1,
+      "total": 1,
+      "success_rate": 1.0,
+      "min_required": 10,
+      "sufficient_samples": false,
+      "meets_criteria": false
+    }
+  },
+  "summary": {
+    "total_sessions": 10,
+    "features_tested": 12,
+    "features_passed": 0
+  }
+}

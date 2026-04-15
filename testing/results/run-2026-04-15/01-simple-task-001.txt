@@ -1,0 +1,42 @@
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"},
+    {"id": "doc-factorial", "content": "Add docstring to factorial()", "status": "completed"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "I added a concise docstring to factorial describing inputs, return value, and recursion. What would you like to do next?",
+    "options": [
+      {"id": "A", "label": "Continue — add type hints and a doctest example"},
+      {"id": "B", "label": "Iterate — tighten wording or add raises for negative n"},
+      {"id": "C", "label": "Run tests or show the full updated file for review"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: B
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Iteration applied: docstring now states non-negative integer domain. What would you like to do next?",
+    "options": [
+      {"id": "A", "label": "Continue — add explicit ValueError for n < 0"},
+      {"id": "B", "label": "Iterate — expand with complexity notes"},
+      {"id": "C", "label": "Open a PR-style summary"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: Done
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})

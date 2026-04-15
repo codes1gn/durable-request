@@ -1,0 +1,41 @@
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Diagnosis ready: IndexError from lst[5] on a length-3 list (valid indices 0..2).",
+    "options": [
+      {"id": "A", "label": "Continue — show corrected indexing and bounds check"},
+      {"id": "B", "label": "Iterate — explain negative indices and slicing"},
+      {"id": "C", "label": "Refactor — replace print with logging"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: A
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Fix explained with minimal index correction and guarded access pattern using len bounds.",
+    "options": [
+      {"id": "A", "label": "Continue — generalize to a reusable safe_get helper"},
+      {"id": "B", "label": "Iterate — discuss off-by-one debugging checklist"},
+      {"id": "C", "label": "Close — no further changes needed"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: C
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})

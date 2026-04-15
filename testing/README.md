@@ -38,8 +38,9 @@ testing/
 | F5 | Multi-step checkpoint loop | 10 |
 | F6 | Durable loop (continue until Done) | 10 |
 | F7 | Subagent conversational fallback | 10 |
-| F8 | Steering acknowledgment (model says "Received steering") | 10 |
+| F8 | Steering acknowledgment (bounding box header `⚡ STEERING RECEIVED`) | 10 |
 | F8a | Steering message visible in Shell output | 10 |
+| F8b | Mandatory bounding box in agent reply (Message + Response rows) | 10 |
 | F9 | Todo cleanup at >20 items | 5 |
 | F10 | No silent completion | 10 |
 
@@ -54,7 +55,7 @@ Each workload is designed to trigger multiple checkpoints and test specific feat
 | 3 | Iterative refinement | ~4 | F3, F5, F6 |
 | 4 | Research/analysis task | ~3 | F1, F2, F4, F10 |
 | 5 | Debug task | ~3 | F1, F2, F4, F10 |
-| 6 | Task with steering | ~4 | F1, F8 |
+| 6 | Task with steering | ~4 | F1, F8, F8a, F8b |
 | 7 | Long task (many todos) | ~6 | F1, F9 |
 | 8 | Q&A informational | ~2 | F1, F10 |
 | 9 | Subagent mode | ~3 | F7 |
@@ -73,8 +74,9 @@ PATTERNS = {
     "four_options": r'"id":\s*"[ABC]".*"id":\s*"D".*""',
     "task_summary": r'"prompt":\s*"[^"]{10,}',  # prompt with content
     "no_silent_end": r'(AskQuestion|checkpoint\.sh|Done|durable-checkpoint)',
-    "steering_ack": r'\[durable-request\].*[Rr]eceived steering',
+    "steering_ack": r'\[durable-request\].*[Rr]eceived steering|STEERING RECEIVED',
     "steering_visible": r'USER STEERING MESSAGE|⚡.*STEERING',
+    "steering_box": r'╔[═]+╗.*?⚡\s*STEERING RECEIVED.*?╠[═]+╣.*?Message\s*:.*?╠[═]+╣.*?Response\s*:.*?╚[═]+╝',
     "todo_cleanup": r'todo-cleanup\.sh|merge:\s*false',
     "subagent_fallback": r'\d+\.\s+Continue\n\d+\.\s+Iterate\n\d+\.\s+Done',
 }

@@ -12,7 +12,7 @@
 
 1. Agent starts implementing calculator
 2. **Steering message injected** during execution
-3. Agent acknowledges steering: "Received steering: ..."
+3. Agent acknowledges steering using the **mandatory bounding box** format
 4. Agent adjusts scope (only +/-)
 5. Checkpoint with adjusted summary
 6. User "Done"
@@ -23,7 +23,14 @@
 User: [prompt]
 [Steering: "先只实现加法和减法，其他的之后再加"]
 Agent: [sees steering in Shell output]
-       [acknowledges] "Received steering: 先只实现加法和减法..."
+       [outputs bounding box]:
+         ╔══════════════════════════════════════════════════════════════╗
+         ║ ⚡ STEERING RECEIVED                                          ║
+         ╠══════════════════════════════════════════════════════════════╣
+         ║ Message : 先只实现加法和减法，其他的之后再加                  ║
+         ╠══════════════════════════════════════════════════════════════╣
+         ║ Response: Understood. Implementing only add/subtract now.    ║
+         ╚══════════════════════════════════════════════════════════════╝
        [implements only +/-] → checkpoint
 User: "Continue"
 Agent: [maybe adds */ later] → checkpoint
@@ -34,16 +41,19 @@ Agent: [ends]
 ## Features Tested
 
 - F1: Checkpoint after task completion
-- F8: Steering acknowledgment (model says "Received steering: ...")
+- F8: Steering acknowledgment (box header `⚡ STEERING RECEIVED` present)
 - F8a: Steering message visible in Shell output
+- F8b: **Mandatory bounding box** in agent reply (full box with Message + Response rows)
 
 ## Verification Patterns
 
 ```python
 patterns = [
     r'AskQuestion',
-    r'\[durable-request\].*[Rr]eceived steering',  # F8: acknowledgment
-    r'USER STEERING MESSAGE|⚡.*STEERING',  # F8a: visible in output
+    r'STEERING RECEIVED',            # F8: bounding box header
+    r'USER STEERING MESSAGE|⚡.*STEERING',  # F8a: visible in Shell output
+    # F8b: full box with all required rows
+    r'╔[═]+╗.*?⚡\s*STEERING RECEIVED.*?╠[═]+╣.*?Message\s*:.*?╠[═]+╣.*?Response\s*:.*?╚[═]+╝',
 ]
 ```
 

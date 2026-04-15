@@ -64,13 +64,23 @@ FEATURES = {
     "F8": Feature(
         id="F8",
         name="Steering acknowledgment",
-        pattern=re.compile(r'\[durable-request\].*[Rr]eceived steering'),
+        pattern=re.compile(r'\[durable-request\].*[Rr]eceived steering|STEERING RECEIVED'),
         min_samples=10
     ),
     "F8a": Feature(
         id="F8a",
         name="Steering message visible in Shell output",
         pattern=re.compile(r'USER STEERING MESSAGE|⚡.*STEERING'),
+        min_samples=10
+    ),
+    "F8b": Feature(
+        id="F8b",
+        name="Steering bounding box in agent reply",
+        # Matches the mandatory box: ⚡ STEERING RECEIVED header + Message + Response rows
+        pattern=re.compile(
+            r'╔[═]+╗.*?⚡\s*STEERING RECEIVED.*?╠[═]+╣.*?Message\s*:.*?╠[═]+╣.*?Response\s*:.*?╚[═]+╝',
+            re.DOTALL
+        ),
         min_samples=10
     ),
     "F9": Feature(
@@ -94,7 +104,7 @@ WORKLOAD_FEATURES = {
     "03-iterative": ["F3", "F5", "F6"],
     "04-research": ["F1", "F2", "F4", "F10"],
     "05-debug": ["F1", "F2", "F4", "F10"],
-    "06-steering": ["F1", "F8"],
+    "06-steering": ["F1", "F8", "F8a", "F8b"],
     "07-long-task": ["F1", "F9"],
     "08-qa": ["F1", "F10"],
     "09-subagent": ["F7"],

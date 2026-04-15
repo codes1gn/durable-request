@@ -1,0 +1,162 @@
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"},
+    {"id": "t01", "content": "Scaffold Flask app factory and config", "status": "completed"},
+    {"id": "t02", "content": "Define User model + migrations", "status": "completed"},
+    {"id": "t03", "content": "Implement GET/POST /users", "status": "completed"},
+    {"id": "t04", "content": "Implement GET/PATCH/DELETE /users/<id>", "status": "pending"},
+    {"id": "t05", "content": "Add Marshmallow schemas + validation", "status": "pending"},
+    {"id": "t06", "content": "Wire JSON error handlers", "status": "pending"},
+    {"id": "t07", "content": "Add pytest fixtures + SQLite test DB", "status": "pending"},
+    {"id": "t08", "content": "Write CRUD integration tests", "status": "pending"},
+    {"id": "t09", "content": "Add Makefile targets (test, run)", "status": "pending"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Scaffolded Flask app factory, config, and User model with migration. What should I tackle next?",
+    "options": [
+      {"id": "A", "label": "Finish remaining /users routes and validation"},
+      {"id": "B", "label": "Prioritize error handlers and consistent JSON errors"},
+      {"id": "C", "label": "Switch focus to pytest fixtures and integration tests"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: A
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"},
+    {"id": "t04", "status": "completed"},
+    {"id": "t05", "status": "completed"},
+    {"id": "t10", "content": "Add pagination query params", "status": "completed"},
+    {"id": "t11", "content": "Add soft-delete flag behavior", "status": "pending"},
+    {"id": "t12", "content": "Add rate-limit hook", "status": "pending"},
+    {"id": "t13", "content": "Add request ID middleware", "status": "pending"},
+    {"id": "t14", "content": "Add structured logging context", "status": "pending"},
+    {"id": "t15", "content": "Add OpenAPI-ish error envelope", "status": "pending"},
+    {"id": "t16", "content": "Add admin-only maintenance route", "status": "pending"},
+    {"id": "t17", "content": "Add bulk import endpoint (CSV)", "status": "pending"},
+    {"id": "t18", "content": "Add export endpoint (CSV)", "status": "pending"},
+    {"id": "t19", "content": "Add healthcheck /ready + /live", "status": "pending"},
+    {"id": "t20", "content": "Add Dockerfile + gunicorn entrypoint", "status": "pending"},
+    {"id": "t21", "content": "Add GitHub Actions CI matrix", "status": "pending"},
+    {"id": "t22", "content": "Add pre-commit (ruff/black)", "status": "pending"},
+    {"id": "t23", "content": "Add API versioning /v1 prefix", "status": "pending"},
+    {"id": "t24", "content": "Add optional auth stub (JWT placeholder)", "status": "pending"},
+    {"id": "t25", "content": "Add query filtering (email domain)", "status": "pending"},
+    {"id": "t26", "content": "Add cursor-based pagination variant", "status": "pending"},
+    {"id": "t27", "content": "Add DB connection pool tuning notes", "status": "pending"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Routes and Marshmallow validation done, including pagination. Where next?",
+    "options": [
+      {"id": "A", "label": "Implement JSON error handlers and envelopes"},
+      {"id": "B", "label": "Expand test suite for edge cases"},
+      {"id": "C", "label": "Harden ops: Dockerfile, gunicorn, healthchecks"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: Error handling first.
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"},
+    {"id": "t06", "status": "completed"},
+    {"id": "t15", "status": "completed"},
+    {"id": "t13", "status": "completed"},
+    {"id": "t14", "status": "completed"},
+    {"id": "t32", "content": "Add timeout handling for DB calls", "status": "pending"},
+    {"id": "t33", "content": "Add retry policy", "status": "pending"},
+    {"id": "t34", "content": "Add security headers", "status": "pending"},
+    {"id": "t35", "content": "Add input size limits", "status": "pending"},
+    {"id": "t36", "content": "Add consistent field-level errors", "status": "pending"},
+    {"id": "t37", "content": "Add 409 conflict mapping", "status": "pending"},
+    {"id": "t38", "content": "Add 410 gone for soft-deleted reads", "status": "pending"},
+    {"id": "t39", "content": "Add trace propagation hooks", "status": "pending"},
+    {"id": "t40", "content": "Add metrics counters for errors", "status": "pending"},
+    {"id": "t41", "content": "Add redaction for PII in logs", "status": "pending"},
+    {"id": "t42", "content": "Add dev-only debug error payloads", "status": "pending"},
+    {"id": "t43", "content": "Add prod-safe error message policy", "status": "pending"},
+    {"id": "t44", "content": "Add exception hierarchy in errors.py", "status": "pending"},
+    {"id": "t45", "content": "Add i18n placeholder for messages", "status": "pending"},
+    {"id": "t46", "content": "Add correlation id to responses", "status": "pending"},
+    {"id": "t47", "content": "Add problem+json content negotiation", "status": "pending"},
+    {"id": "t48", "content": "Add graceful shutdown handler", "status": "pending"},
+    {"id": "t49", "content": "Add request validation timing logs", "status": "pending"},
+    {"id": "t50", "content": "Add SQL echo toggle for dev", "status": "pending"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Error handlers now return consistent JSON envelope with request IDs and validation details. What next?",
+    "options": [
+      {"id": "A", "label": "Move on to pytest fixtures and integration tests"},
+      {"id": "B", "label": "Implement remaining optional routes"},
+      {"id": "C", "label": "Polish ops: CI, pre-commit, container build"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: Tests next.
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})
+Shell: echo '$TODOS_JSON' | bash ~/.cursor/skills/durable-request/todo-cleanup.sh
+[tool] TodoWrite({
+  "merge": false,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"},
+    {"id": "t07", "content": "Add pytest fixtures + SQLite test DB", "status": "completed"},
+    {"id": "t08", "content": "Write CRUD integration tests", "status": "completed"},
+    {"id": "t09", "content": "Add Makefile targets (test, run)", "status": "pending"},
+    {"id": "t30", "content": "Add README runbook section", "status": "pending"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Pytest covers CRUD flows; todos cleaned down to five items after exceeding twenty. What next?",
+    "options": [
+      {"id": "A", "label": "Polish developer UX: Makefile, README, seed script"},
+      {"id": "B", "label": "Implement optional routes deferred earlier"},
+      {"id": "C", "label": "Harden CI: matrix, caching, artifact uploads"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})
+User: Finalize docs.
+[tool] TodoWrite({"merge": true, "todos": [{"id": "durable-checkpoint", "status": "completed"}]})
+[tool] TodoWrite({
+  "merge": true,
+  "todos": [
+    {"id": "durable-checkpoint", "content": "Present interactive checkpoint to user", "status": "in_progress"},
+    {"id": "t30", "status": "completed"},
+    {"id": "t09", "status": "completed"}
+  ]
+})
+[tool] AskQuestion({
+  "questions": [{
+    "id": "next_action",
+    "prompt": "Makefile, README runbook, and seed script documented. What next?",
+    "options": [
+      {"id": "A", "label": "Review security hardening checklist"},
+      {"id": "B", "label": "Add deployment notes (systemd + reverse proxy)"},
+      {"id": "C", "label": "Open a follow-up task list for v0.2 features"},
+      {"id": "D", "label": ""}
+    ],
+    "allow_multiple": false
+  }]
+})

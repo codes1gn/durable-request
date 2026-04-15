@@ -7,7 +7,7 @@ const DEFAULT_STEERING_DIR = path.join(os.homedir(), '.durable-request', 'data')
 const STEERING_FILENAME = 'steering-message';
 
 let steerButton: vscode.StatusBarItem;
-let pendingSteeringTimer: NodeJS.Timeout | null = null;
+let pollInterval: NodeJS.Timeout | null = null;
 
 function getSteeringDir(): string {
   const config = vscode.workspace.getConfiguration('durableRequest');
@@ -56,25 +56,45 @@ function clearSteeringMessage(): boolean {
   return false;
 }
 
-function updateButtonState(pending: boolean): void {
+function updateButtonState(pending: boolean, message?: string): void {
   if (!steerButton) {
     return;
   }
 
   if (pending) {
-    steerButton.text = "$(megaphone) Steering...";
+    const label = message ? ` — "${message}"` : '';
+    steerButton.text = `$(megaphone) Steering pending${label}`;
     steerButton.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-    steerButton.tooltip = "Steering message pending - will be processed at next tool call";
+    steerButton.tooltip = message
+      ? `Steering pending: "${message}"\nWill be consumed at agent's next Shell call`
+      : "Steering message pending — will be consumed at agent's next Shell call";
   } else {
     steerButton.text = "$(megaphone) Steer";
     steerButton.backgroundColor = undefined;
-    steerButton.tooltip = "Send steering message to agent (Ctrl+Shift+S)";
+    steerButton.tooltip = "Send steering message to agent";
   }
 }
 
 function checkPendingSteering(): void {
-  const pending = readSteeringMessage();
-  updateButtonState(pending !== null && pending.length > 0);
+  const message = readSteeringMessage();
+  const pending = message !== null && message.trim().length > 0;
+  updateButtonState(pending, pending ? message!.trim() : undefined);
+  adjustPollRate(pending);
+}
+
+function adjustPollRate(pendingNow: boolean): void {
+  if (!pollInterval) {
+    return;
+  }
+  // Fast polling (1 s) while a message is pending so the button clears promptly;
+  // slow polling (5 s) when idle. Restart only if the rate needs to change.
+  const currentMs = (pollInterval as any).__intervalMs as number | undefined;
+  const targetMs = pendingNow ? 1000 : 5000;
+  if (currentMs !== targetMs) {
+    clearInterval(pollInterval);
+    pollInterval = setInterval(() => checkPendingSteering(), targetMs);
+    (pollInterval as any).__intervalMs = targetMs;
+  }
 }
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -115,25 +135,19 @@ export function activate(context: vscode.ExtensionContext): void {
       }
 
       try {
-        writeSteeringMessage(message.trim());
+        const trimmed = message.trim();
+        writeSteeringMessage(trimmed);
 
         // Show notification if enabled
         if (config.get<boolean>('notifyOnSteer', true)) {
           vscode.window.showInformationMessage(
-            `⚡ Steering queued: "${message.trim()}"`
+            `⚡ Steering queued: "${trimmed}"`
           );
         }
 
-        // Update button state
-        updateButtonState(true);
-
-        // Clear the pending state after 30 seconds (hook should have consumed by then)
-        if (pendingSteeringTimer) {
-          clearTimeout(pendingSteeringTimer);
-        }
-        pendingSteeringTimer = setTimeout(() => {
-          checkPendingSteering();
-        }, 30000);
+        // Immediately reflect pending state; polling takes over from here
+        updateButtonState(true, trimmed);
+        adjustPollRate(true);
 
       } catch (err) {
         vscode.window.showErrorMessage(
@@ -195,21 +209,21 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // Periodically check for pending steering (every 5 seconds)
-  const checkInterval = setInterval(() => {
-    checkPendingSteering();
-  }, 5000);
+  // Start idle polling (5 s). Switches to 1 s automatically while a message is pending.
+  pollInterval = setInterval(() => checkPendingSteering(), 5000);
+  (pollInterval as any).__intervalMs = 5000;
 
   context.subscriptions.push(
     steerCommand,
     clearCommand,
     statusCommand,
-    { dispose: () => clearInterval(checkInterval) }
+    { dispose: () => { if (pollInterval) { clearInterval(pollInterval); } } }
   );
 }
 
 export function deactivate(): void {
-  if (pendingSteeringTimer) {
-    clearTimeout(pendingSteeringTimer);
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
   }
 }
