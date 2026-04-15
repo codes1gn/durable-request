@@ -183,52 +183,54 @@ export function Steering() {
               {[
                 {
                   platform: "Cursor IDE",
-                  icon: "✦",
-                  status: "Full support",
+                  supported: true,
                   cost: "Free of request",
-                  detail: "Hook injects at next Shell call inside the same conversation. No extra API call.",
-                  statusColor: "text-emerald-400",
-                  costColor: "text-emerald-400",
-                  border: "border-emerald-500/25",
+                  detail: "preToolUse hook injects at the next Shell call inside the same conversation. Zero extra API calls.",
                 },
                 {
                   platform: "Cursor CLI",
-                  icon: "⬛",
-                  status: "Full support",
+                  supported: true,
                   cost: "Free of request",
-                  detail: "Same preToolUse hook as IDE. Works in tmux sessions with checkpoint.sh.",
-                  statusColor: "text-emerald-400",
-                  costColor: "text-emerald-400",
-                  border: "border-emerald-500/25",
+                  detail: "Same hook as IDE. Works inside tmux sessions alongside checkpoint.sh.",
                 },
                 {
                   platform: "Claude Code / Codex",
-                  icon: "◆",
-                  status: "Full support",
+                  supported: true,
                   cost: "Free of request",
                   detail: "Hook fires inside the running conversation. No separate request consumed.",
-                  statusColor: "text-emerald-400",
-                  costColor: "text-emerald-400",
-                  border: "border-emerald-500/25",
                 },
                 {
                   platform: "Copilot / VSCode",
-                  icon: "◉",
-                  status: "Supported",
-                  cost: "+1 request",
-                  detail: "Copilot's question carousel mechanism requires a separate API request to surface the steering message to the model.",
-                  statusColor: "text-amber-400",
-                  costColor: "text-amber-400",
-                  border: "border-amber-500/25",
+                  supported: false,
+                  cost: "Not supported",
+                  detail: "Copilot's API does not expose Shell-level tool interception. The steering message cannot be surfaced to the model without an extra request.",
                 },
               ].map((p) => (
-                <div key={p.platform} className={`rounded-xl border ${p.border} bg-[var(--card)] p-5`}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`text-lg ${p.statusColor}`}>{p.icon}</span>
+                <div
+                  key={p.platform}
+                  className={`rounded-xl border bg-[var(--card)] p-5 ${
+                    p.supported
+                      ? "border-emerald-500/25"
+                      : "border-[var(--border)] opacity-60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-bold">{p.platform}</span>
+                    <span
+                      className={`text-base font-bold ${
+                        p.supported ? "text-emerald-400" : "text-rose-400"
+                      }`}
+                    >
+                      {p.supported ? "✓" : "✗"}
+                    </span>
                   </div>
-                  <div className={`text-xs font-semibold mb-0.5 ${p.statusColor}`}>{p.status}</div>
-                  <div className={`text-xs font-mono font-bold mb-2 ${p.costColor}`}>{p.cost}</div>
+                  <div
+                    className={`text-xs font-mono font-bold mb-2 ${
+                      p.supported ? "text-emerald-400" : "text-rose-400"
+                    }`}
+                  >
+                    {p.cost}
+                  </div>
                   <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">{p.detail}</p>
                 </div>
               ))}
@@ -281,11 +283,14 @@ export function Steering() {
                         Cursor IDE
                       </span>
                     </div>
-                    <img
-                      src={step.screenshot}
-                      alt={step.screenshotAlt}
-                      className="w-full object-contain"
-                    />
+                    <div className="flex justify-center bg-[#0d1117] px-4 py-3">
+                      <img
+                        src={step.screenshot}
+                        alt={step.screenshotAlt}
+                        className="max-h-40 w-auto object-contain"
+                        style={{ imageRendering: "auto" }}
+                      />
+                    </div>
                   </div>
                   <p className="text-center text-xs text-[var(--muted-foreground)] mt-2">
                     {step.caption}
@@ -319,11 +324,13 @@ export function Steering() {
                     live E2E test — hook injection + agent acknowledgement
                   </span>
                 </div>
-                <img
-                  src={screenshot1}
-                  alt="Live end-to-end test: STEERING RECEIVED bounding box in agent response"
-                  className="w-full"
-                />
+                <div className="flex justify-center bg-[#0d1117] px-4 py-4">
+                  <img
+                    src={screenshot1}
+                    alt="Live end-to-end test: STEERING RECEIVED bounding box in agent response"
+                    className="max-h-64 w-auto object-contain"
+                  />
+                </div>
               </div>
               <p className="text-center text-xs text-[var(--muted-foreground)] mt-2">
                 The agent's reply shows the full bounding box — message verbatim + adjusted plan
