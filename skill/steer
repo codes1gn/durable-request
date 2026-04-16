@@ -32,8 +32,7 @@ for candidate in \
   "$SCRIPT_DIR/steer-ui.sh" \
   "$SCRIPT_DIR/../skill/steer-ui.sh" \
   "$HOME/.durable-request/bin/steer-ui.sh" \
-  "$HOME/.durable-request/skill/steer-ui.sh" \
-  "/home/albert/workspace/durable-request/skill/steer-ui.sh"; do
+  "$HOME/.durable-request/skill/steer-ui.sh"; do
   if [ -f "$candidate" ]; then
     UI_SCRIPT="$candidate"
     break

@@ -1,6 +1,8 @@
 .cursor/
 __pycache__/
 *.pyc
+skill/.reinforce-counter
+skill/.ckpt-*
 data/epoch-*/results/s50/
 data/epoch-*/results/s300/
 data/epoch-*/results/s300v2/

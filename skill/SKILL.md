@@ -206,11 +206,24 @@ fallback when `question` is available.
 Use a single question with concise context-adapted options and let the built-in custom
 answer path handle freeform follow-up.
 
-### Step 3: Handle the Result — VERBOSE and EXPLICIT
+### Step 3: Handle the Result + Call Reinforce
 
-**You MUST be explicit about what happened.** Never silently fall back. Never silently succeed. Always tell the user what tool you attempted and what the outcome was.
+**After the checkpoint tool returns the user's response**, IMMEDIATELY call `reinforce.sh` via Shell:
 
-#### If the tool SUCCEEDED:
+```bash
+bash ~/.cursor/skills/durable-request/reinforce.sh \
+  --skill-path "~/.cursor/skills/durable-request/SKILL.md"
+```
+
+This applies to **ALL environments** (IDE, CLI, Claude Code, OpenCode). In CLI mode, `checkpoint.sh` calls `reinforce.sh` automatically — you don't need to call it again. In IDE mode (AskQuestion), you MUST call it yourself via Shell after receiving the user's response.
+
+`reinforce.sh` outputs:
+- `[ANCHOR]` — reminder to keep the durable-checkpoint todo in_progress
+- `[PROTOCOL REFRESH]` (every 5 checkpoints) — re-read SKILL.md to prevent attention decay
+
+**When you see `[PROTOCOL REFRESH]`, you MUST re-read the SKILL.md file before continuing.** Also re-read when context compaction occurs (you'll notice earlier instructions feeling unfamiliar).
+
+#### Reporting the result
 
 For `AskQuestion` / `AskUserQuestion` / `question`:
 
@@ -230,63 +243,23 @@ The script auto-selects the first option and prints setup instructions. Tell the
 
 The agent continues with the auto-selected option.
 
-#### If NO interactive tool exists
+#### If the expected tool is missing
 
-Use the platform-specific tool. If it's unavailable, handle as follows:
-
-
-| Environment  | Tool Missing                          | Action                                  |
-| ------------ | ------------------------------------- | --------------------------------------- |
-| Cursor IDE   | `AskQuestion` unavailable             | You're in CLI — use `checkpoint.sh`     |
-| Copilot IDE  | `#vscode/askQuestions` unavailable    | ERROR — report failure, do not fallback |
-| Cursor CLI   | `Shell` / `checkpoint.sh` unavailable | ERROR — report failure, do not fallback |
-| OpenCode     | `question` unavailable                | ERROR — report failure, do not fallback |
-| Claude Code  | `AskUserQuestion` unavailable         | ERROR — report failure, do not fallback |
-| Subagent     | No interactive tools at all           | Conversational fallback allowed         |
-
-
-**Conversational fallback (numbered text options) is ONLY for subagents that truly lack any interactive mechanism.** If you are in Cursor IDE, Cursor CLI, OpenCode, or Claude Code and the expected tool fails — ERROR. Do NOT substitute text fallback. Report the issue explicitly so the user knows something is wrong.
+The environment detection table above already specifies each platform's tool. If that tool is unavailable: **ERROR — report failure.** Conversational fallback (numbered text options) is ONLY for subagents that truly lack any interactive mechanism.
 
 ### The TodoWrite + Checkpoint Reinforcement Pattern
 
-The key insight: calling `TodoWrite` and the checkpoint **together in the same tool call batch** creates a double-lock:
-
-```
-┌─────────────────── SAME TOOL CALL BATCH ───────────────────┐
-│                                                            │
-│  TodoWrite([{                          AskQuestion({       │
-│    id: "durable-checkpoint",             ...               │
-│    content: "Present checkpoint",      })                  │
-│    status: "in_progress"               OR                  │
-│  }])                                   Shell: checkpoint.sh│
-│                                        (in CLI)            │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-- **IDE**: `AskQuestion` blocks turn, user responds, mark todo complete, continue
-- **CLI**: `checkpoint.sh` via Shell blocks, user responds in tmux pane, continue
-- **CLI (AskQuestion tried first and failed)**: immediately call `checkpoint.sh`
-- **Subagent with no interactive tools**: conversational fallback in text
-
-This is **not optional**. Always pair TodoWrite with the checkpoint.
+Always call `TodoWrite` and the checkpoint tool **in the same tool call batch** — this creates a double-lock. TodoWrite anchors the obligation; the checkpoint tool blocks the turn. This is **not optional**.
 
 ## Anti-Silent-Completion Rules
 
-These thoughts mean STOP — you're about to end silently:
+If you catch yourself thinking any of these, STOP — you're about to end silently:
 
-
-| Thought                                 | Correct Action                                                                                                               |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| "Task is done, I'll wrap up"            | Present checkpoint FIRST                                                                                                     |
-| "That's all they asked for"             | They may want more — ASK                                                                                                     |
-| "Simple change, no need to check"       | Simple changes still need confirmation                                                                                       |
-| "I already explained what I did"        | Explanation ≠ checkpoint. Still ask.                                                                                         |
-| "The output speaks for itself"          | Never assume. Present options.                                                                                               |
-| "They'll ask if they want more"         | YOUR job to offer. Don't shift burden.                                                                                       |
-| "I'm a subagent, I just return results" | Still present a checkpoint. Use builtin interactive tools if available; only use text fallback if none exist.                |
-| "AskQuestion isn't available"           | Check for the environment's actual interactive tool (`question`, `AskUserQuestion`, or `checkpoint.sh`) before any fallback. |
-| "TodoWrite is overhead"                 | TodoWrite is the anchor that prevents silent endings. Always use it.                                                         |
+- "Task is done" → present checkpoint FIRST
+- "That's all they asked for" → they may want more — ASK
+- "The output speaks for itself" → never assume, present options
+- "They'll ask if they want more" → YOUR job to offer
+- "TodoWrite is overhead" → it's the anchor that prevents silent endings
 
 
 ## Multi-Step Tasks
@@ -328,40 +301,11 @@ The script outputs the cleaned list. Pass it to `TodoWrite({ todos: ..., merge: 
 
 ## The Durable Loop Pattern
 
-### Editor (AskQuestion available)
+**Do Work → TodoWrite (anchor) → Checkpoint tool (block) → User responds → repeat.**
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      Single Request                          │
-│                                                              │
-│  ┌──────────┐  ┌───────────┐  ┌────────────┐  ┌──────────┐ │
-│  │ Do Work  │─▶│ TodoWrite │─▶│ AskQuestion│─▶│ User     │ │
-│  │          │  │ (anchor)  │  │ (block)    │  │ Responds │ │
-│  └──────────┘  └───────────┘  └────────────┘  └────┬─────┘ │
-│       ▲                                            │       │
-│       │        "done" ────────────────────▶  END   │       │
-│       └─────────── anything else ◀─────────────────┘       │
-└──────────────────────────────────────────────────────────────┘
-```
+If user selects "done" → END. Otherwise → execute their choice → checkpoint again.
 
-### CLI (checkpoint.sh via Shell — true durable loop)
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      Single Request                          │
-│                                                              │
-│  ┌──────────┐  ┌───────────┐  ┌──────────────┐ ┌──────────┐│
-│  │ Do Work  │─▶│ TodoWrite │─▶│ Shell:       │─▶│ User     ││
-│  │          │  │ (anchor)  │  │ checkpoint.sh│  │ picks in ││
-│  └──────────┘  └───────────┘  │ (blocks)     │  │ terminal ││
-│       ▲                       └──────────────┘  └────┬─────┘│
-│       │        "done" ────────────────────────▶ END  │      │
-│       └─────────── anything else ◀───────────────────┘      │
-│                                                              │
-│  checkpoint.sh creates tmux split pane → user picks option   │
-│  → pane auto-closes → agent reads response from stdout       │
-└──────────────────────────────────────────────────────────────┘
-```
+For detailed flow diagrams, see `references/flow-diagrams.md`.
 
 ## Steering (Optional)
 
@@ -470,6 +414,19 @@ Steering is for mid-turn adjustments. You still MUST present a checkpoint when:
 Steering and checkpoints are complementary:
 - **Steering**: User redirects you while you're working
 - **Checkpoint**: You pause and ask what to do next
+
+## Guardrail Harness (G1 + G3)
+
+`reinforce.sh` provides layered drift defense for long sessions:
+
+- **G1 — `[NEXT]` directives**: Tell you what to do after the checkpoint (execute user's choice, then checkpoint again). Appears in the most-recent tool output for maximum attention.
+- **G3 — Protocol refresh**: Every 5 checkpoints, prints `[PROTOCOL REFRESH]` instructing you to re-read this SKILL.md. **When you see this, you MUST re-read the file.** This prevents attention decay in long sessions.
+- **G2 — Anchor reminder**: Reminds you to keep `durable-checkpoint` as `in_progress`.
+
+**How it's called:**
+- **CLI**: `checkpoint.sh` calls `reinforce.sh` automatically — zero agent effort.
+- **IDE / all other environments**: You MUST call `reinforce.sh` via Shell after every `AskQuestion` / `question` / `AskUserQuestion` response (see Step 3 above).
+- **Context compaction**: If you suspect context compaction occurred (early instructions feel unfamiliar), call `reinforce.sh` proactively.
 
 ## Integration with Other Skills
 

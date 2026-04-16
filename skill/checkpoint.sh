@@ -111,7 +111,6 @@ if [ -n "$TMUX_TARGET" ]; then
     echo "${OPTIONS[0]}" > "$ANSWER_FILE"
     rm -f "$LOCK_FILE"
     echo "[durable-request] Auto-selected: ${OPTIONS[0]}"
-    exit 0
   }
 else
   echo "[durable-request] ERROR: tmux session not found."
@@ -123,7 +122,6 @@ else
   echo "${OPTIONS[0]}" > "$ANSWER_FILE"
   rm -f "$LOCK_FILE"
   echo "[durable-request] Auto-selected: ${OPTIONS[0]}"
-  exit 0
 fi
 
 # ── 3. Poll for answer (print keep-alive messages to prevent Shell timeout) ─
@@ -153,3 +151,15 @@ echo ""
 echo "[durable-request] ================================"
 echo "[durable-request] User responded: $ANSWER"
 echo "[durable-request] ================================"
+
+# ── 5. Guardrail directives (G1 pattern) ─────────────────────────────────
+echo ""
+echo "[NEXT] Execute the user's selected action above."
+echo "[NEXT] After completing it, present another checkpoint (TodoWrite + AskQuestion or checkpoint.sh)."
+echo "[NEXT] This is a durable request — do NOT end your turn silently."
+
+# ── 6. Periodic protocol refresh (G3 pattern via reinforce.sh) ───────────
+REINFORCE_SCRIPT="$SKILL_DIR/reinforce.sh"
+if [ -f "$REINFORCE_SCRIPT" ]; then
+  bash "$REINFORCE_SCRIPT" --skill-path "$SKILL_DIR/SKILL.md" 2>/dev/null || true
+fi
