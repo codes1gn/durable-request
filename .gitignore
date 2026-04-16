@@ -8,3 +8,4 @@ data/epoch-*/results/s300/
 data/epoch-*/results/s300v2/
 website/node_modules/
 website/dist/
+skill.tar
