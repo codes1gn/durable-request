@@ -1,0 +1,105 @@
+{
+  "metadata": {
+    "test_date": "2026-05-21",
+    "test_type": "A/B: raw vs Claude-enhanced prompts",
+    "model": "claude-4.6-opus (via Cursor subagents)",
+    "test_count": 3,
+    "evaluation_method": "Self-assessment (same model generates + scores)"
+  },
+  "tests": [
+    {
+      "id": "T1",
+      "task": "Login Validator",
+      "raw": {
+        "prompt": "write a login validator function in TypeScript",
+        "self_scores": { "structure": 5, "completeness": 4, "type_safety": 5, "error_handling": 4, "testability": 4 },
+        "avg_score": 4.40,
+        "test_count": 8,
+        "edge_cases_considered": 8,
+        "edge_cases_not_considered": 7,
+        "features": ["email format check", "password length", "password complexity", "configurable options", "multiple errors at once", "discriminated union result"]
+      },
+      "enhanced": {
+        "prompt_technique": "Claude XML tags + recency + few-shot + success criteria",
+        "self_scores": { "structure": 5, "completeness": 5, "type_safety": 5, "error_handling": 4, "testability": 5 },
+        "avg_score": 4.80,
+        "test_count": 11,
+        "edge_cases_considered": 10,
+        "edge_cases_not_considered": 0,
+        "features": ["email format check", "email length limit (254)", "password min/max length", "configurable password policy (uppercase, lowercase, digit, special)", "null/undefined input handling", "multiple errors at once", "whitespace trimming", "email TOO_LONG error code"]
+      },
+      "delta": {
+        "avg_score": 0.40,
+        "extra_test_cases": 3,
+        "extra_edge_cases": 2,
+        "extra_features": ["email length limit", "max password length (128)", "null/undefined input", "configurable character classes", "email TOO_LONG"]
+      }
+    },
+    {
+      "id": "T2",
+      "task": "Rate Limiter",
+      "raw": {
+        "prompt": "build a rate limiter for API endpoints",
+        "self_scores": { "structure": 4, "completeness": 3, "type_safety": 4, "error_handling": 3, "testability": 4 },
+        "avg_score": 3.60,
+        "test_count": 7,
+        "edge_cases_considered": 6,
+        "edge_cases_not_considered": 9,
+        "features": ["sliding window (basic)", "Express middleware", "IP-based key", "429 response", "X-RateLimit headers", "skip option", "custom key generator"]
+      },
+      "enhanced": {
+        "prompt_technique": "Claude XML tags + recency + example + constraints",
+        "self_scores": { "structure": 5, "completeness": 4, "type_safety": 5, "error_handling": 4, "testability": 5 },
+        "avg_score": 4.60,
+        "test_count": 12,
+        "edge_cases_considered": 10,
+        "edge_cases_not_considered": 2,
+        "features": ["sliding window (timestamp-based)", "Express middleware factory", "IP/API-key/custom key", "429 + Retry-After + X-RateLimit-* headers", "namespace per endpoint", "periodic cleanup (pruneAll)", "x-forwarded-for", "config validation", "record-without-consuming (peek)", "unref on timer"]
+      },
+      "delta": {
+        "avg_score": 1.00,
+        "extra_test_cases": 5,
+        "extra_edge_cases": 4,
+        "extra_features": ["API key extraction", "namespace isolation", "x-forwarded-for", "periodic cleanup", "timer unref", "config validation"]
+      }
+    },
+    {
+      "id": "T3",
+      "task": "TTL Cache",
+      "raw": {
+        "prompt": "create a caching utility with TTL support",
+        "self_scores": { "structure": 5, "completeness": 4, "type_safety": 5, "error_handling": 3, "testability": 4 },
+        "avg_score": 4.20,
+        "test_count": 9,
+        "edge_cases_considered": 5,
+        "edge_cases_not_considered": 6,
+        "features": ["generic K/V types", "per-key TTL", "lazy expiration", "prune method", "injectable clock", "factory helper"]
+      },
+      "enhanced": {
+        "prompt_technique": "Claude XML tags + recency + examples + events + LRU",
+        "self_scores": { "structure": 5, "completeness": 5, "type_safety": 5, "error_handling": 4, "testability": 5 },
+        "avg_score": 4.80,
+        "test_count": 15,
+        "edge_cases_considered": 12,
+        "edge_cases_not_considered": 0,
+        "features": ["generic Cache<T> interface", "per-key TTL", "lazy + periodic expiration", "LRU eviction (Map reorder)", "event system (set, get-hit, get-miss, delete, evict, expire)", "statistics (hits, misses, evictions)", "dispose/cleanup", "timer unref", "config validation", "maxSize enforcement"]
+      },
+      "delta": {
+        "avg_score": 0.60,
+        "extra_test_cases": 6,
+        "extra_edge_cases": 7,
+        "extra_features": ["LRU eviction", "event system (6 events)", "statistics tracking", "dispose/cleanup", "Cache<T> interface", "periodic cleanup interval"]
+      }
+    }
+  ],
+  "summary": {
+    "raw_avg": 4.07,
+    "enhanced_avg": 4.73,
+    "delta_avg": 0.67,
+    "improvement_pct": 16.4,
+    "total_extra_test_cases": 14,
+    "total_extra_features_in_enhanced": 17,
+    "biggest_improvement": { "test": "T2 Rate Limiter", "delta": 1.00 },
+    "smallest_improvement": { "test": "T1 Login Validator", "delta": 0.40 }
+  }
+}

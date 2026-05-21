@@ -26,7 +26,7 @@ INSTALL_DIR="${HOME}/.durable-request"
 BIN_DIR="${INSTALL_DIR}/bin"
 HOOKS_DIR="${INSTALL_DIR}/hooks"
 DATA_DIR="${INSTALL_DIR}/data"
-SKILL_DIR="${INSTALL_DIR}/skill"
+SKILL_DIR="${INSTALL_DIR}/skills"
 CURSOR_HOOKS_FILE="${HOME}/.cursor/hooks.json"
 
 # Source repo (for downloading)
@@ -62,15 +62,15 @@ install_steer_cli() {
   local STEER_PATH="$BIN_DIR/steer"
   
   # Check if we're running from the repo
-  if [ -f "./skill/steer" ]; then
-    cp "./skill/steer" "$STEER_PATH"
+  if [ -f "./.cursor/skills/durable-request/steer" ]; then
+    cp "./.cursor/skills/durable-request/steer" "$STEER_PATH"
     log_info "Copied from local repo"
   else
     # Download from repo
     if command -v curl &> /dev/null; then
-      curl -sSL "${REPO_URL}/skill/steer" -o "$STEER_PATH"
+      curl -sSL "${REPO_URL}/.cursor/skills/durable-request/steer" -o "$STEER_PATH"
     elif command -v wget &> /dev/null; then
-      wget -q "${REPO_URL}/skill/steer" -O "$STEER_PATH"
+      wget -q "${REPO_URL}/.cursor/skills/durable-request/steer" -O "$STEER_PATH"
     else
       log_error "Neither curl nor wget found. Please install one."
       exit 1
@@ -89,15 +89,15 @@ install_steer_ui() {
   local UI_PATH="$BIN_DIR/steer-ui.sh"
   
   # Check if we're running from the repo
-  if [ -f "./skill/steer-ui.sh" ]; then
-    cp "./skill/steer-ui.sh" "$UI_PATH"
+  if [ -f "./.cursor/skills/durable-request/steer-ui.sh" ]; then
+    cp "./.cursor/skills/durable-request/steer-ui.sh" "$UI_PATH"
     log_info "Copied from local repo"
   else
     # Download from repo
     if command -v curl &> /dev/null; then
-      curl -sSL "${REPO_URL}/skill/steer-ui.sh" -o "$UI_PATH"
+      curl -sSL "${REPO_URL}/.cursor/skills/durable-request/steer-ui.sh" -o "$UI_PATH"
     elif command -v wget &> /dev/null; then
-      wget -q "${REPO_URL}/skill/steer-ui.sh" -O "$UI_PATH"
+      wget -q "${REPO_URL}/.cursor/skills/durable-request/steer-ui.sh" -O "$UI_PATH"
     else
       log_error "Neither curl nor wget found. Please install one."
       exit 1
@@ -123,15 +123,15 @@ install_steering_hook() {
   local HOOK_PATH="$HOOKS_DIR/steering-hook.sh"
   
   # Check if we're running from the repo
-  if [ -f "./skill/steering-hook.sh" ]; then
-    cp "./skill/steering-hook.sh" "$HOOK_PATH"
+  if [ -f "./.cursor/skills/durable-request/steering-hook.sh" ]; then
+    cp "./.cursor/skills/durable-request/steering-hook.sh" "$HOOK_PATH"
     log_info "Copied from local repo"
   else
     # Download from repo
     if command -v curl &> /dev/null; then
-      curl -sSL "${REPO_URL}/skill/steering-hook.sh" -o "$HOOK_PATH"
+      curl -sSL "${REPO_URL}/.cursor/skills/durable-request/steering-hook.sh" -o "$HOOK_PATH"
     elif command -v wget &> /dev/null; then
-      wget -q "${REPO_URL}/skill/steering-hook.sh" -O "$HOOK_PATH"
+      wget -q "${REPO_URL}/.cursor/skills/durable-request/steering-hook.sh" -O "$HOOK_PATH"
     else
       log_error "Neither curl nor wget found. Please install one."
       exit 1

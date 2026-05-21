@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>durable-request /compact 结果对比</title>
+    <meta
+      name="description"
+      content="Compare how durable-request /compact maps to host compact behavior in Cursor IDE and Copilot IDE (VS Code)."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe5;
+        --paper: rgba(255, 255, 255, 0.8);
+        --paper-strong: rgba(255, 255, 255, 0.92);
+        --ink: #0f1724;
+        --muted: #546174;
+        --line: rgba(15, 23, 36, 0.1);
+        --blue: #2563eb;
+        --blue-soft: rgba(37, 99, 235, 0.14);
+        --amber: #b45309;
+        --amber-soft: rgba(180, 83, 9, 0.12);
+        --green: #1f7a45;
+        --green-soft: rgba(31, 122, 69, 0.12);
+        --rose: #b42318;
+        --rose-soft: rgba(180, 35, 24, 0.12);
+        --shadow: 0 24px 80px rgba(25, 41, 72, 0.12);
+        --radius: 28px;
+        --radius-sm: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 30%),
+          radial-gradient(circle at bottom right, rgba(180, 83, 9, 0.12), transparent 28%),
+          linear-gradient(180deg, #faf7f1 0%, var(--bg) 100%);
+      }
+
+      code {
+        padding: 0.1rem 0.4rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 36, 0.08);
+        font-family: "Space Grotesk", monospace;
+        font-size: 0.92em;
+      }
+
+      .grain {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.2;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)),
+          radial-gradient(circle, rgba(15, 23, 36, 0.06) 1px, transparent 1px);
+        background-size: auto, 11px 11px;
+        mix-blend-mode: soft-light;
+      }
+
+      .page {
+        position: relative;
+        z-index: 1;
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 56px 0 88px;
+      }
+
+      .hero,
+      .panel,
+      .ide-card,
+      .summary-card,
+      .roadmap-card,
+      .evidence-card {
+        border: 1px solid var(--line);
+        background: var(--paper);
+        backdrop-filter: blur(16px);
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 36px;
+        border-radius: var(--radius);
+        background:
+          linear-gradient(140deg, rgba(255, 255, 255, 0.94), rgba(248, 245, 238, 0.9)),
+          var(--paper-strong);
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(135deg, rgba(37, 99, 235, 0.12), transparent 42%),
+          repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 24px,
+            rgba(15, 23, 36, 0.03) 24px,
+            rgba(15, 23, 36, 0.03) 25px
+          );
+      }
+
+      .eyebrow,
+      .section-eyebrow,
+      .badge,
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow,
+      .section-eyebrow {
+        position: relative;
+        z-index: 1;
+        margin: 0 0 12px;
+        color: var(--blue);
+        font-size: 0.78rem;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: "Space Grotesk", sans-serif;
+        letter-spacing: -0.04em;
+      }
+
+      h1 {
+        position: relative;
+        z-index: 1;
+        max-width: 900px;
+        font-size: clamp(2.6rem, 5vw, 4.8rem);
+        line-height: 0.96;
+      }
+
+      .lede,
+      .note,
+      .metric-copy,
+      .roadmap-copy,
+      .evidence-list li,
+      .matrix td,
+      .matrix th,
+      .plain-list li {
+        color: var(--muted);
+        line-height: 1.75;
+      }
+
+      .lede {
+        position: relative;
+        z-index: 1;
+        max-width: 920px;
+        margin: 20px 0 0;
+        font-size: 1.04rem;
+      }
+
+      .hero-note {
+        position: relative;
+        z-index: 1;
+        margin-top: 24px;
+        display: inline-flex;
+        padding: 12px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(37, 99, 235, 0.16);
+        background: var(--blue-soft);
+        color: #17419f;
+        font-size: 0.95rem;
+      }
+
+      .summary-grid,
+      .compare-grid,
+      .roadmap-grid,
+      .evidence-grid,
+      .qa-grid {
+        display: grid;
+        gap: 22px;
+        margin-top: 24px;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+
+      .qa-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-card,
+      .roadmap-card,
+      .evidence-card,
+      .qa-card {
+        padding: 24px;
+        border-radius: var(--radius-sm);
+      }
+
+      .qa-card {
+        border: 1px solid rgba(15, 23, 36, 0.08);
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .qa-card h3 {
+        font-size: clamp(1.2rem, 2vw, 1.7rem);
+        line-height: 1.08;
+      }
+
+      .qa-card p,
+      .qa-card li,
+      .capsule-box,
+      .rank-row {
+        color: var(--muted);
+        line-height: 1.78;
+      }
+
+      .qa-card p {
+        margin: 14px 0 0;
+      }
+
+      .rank-list {
+        margin: 16px 0 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      .rank-row {
+        display: grid;
+        grid-template-columns: 88px 1fr;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(15, 23, 36, 0.08);
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .rank-no {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        border-radius: 999px;
+        font-weight: 700;
+        color: var(--ink);
+        background: rgba(15, 23, 36, 0.06);
+      }
+
+      .capsule-box {
+        margin-top: 16px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px dashed rgba(37, 99, 235, 0.22);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .summary-card--accent {
+        background:
+          radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 30%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(245, 242, 236, 0.92));
+      }
+
+      .summary-card h2,
+      .panel h2,
+      .ide-card h2,
+      .roadmap-card h3,
+      .evidence-card h3 {
+        font-size: clamp(1.3rem, 2.4vw, 2rem);
+        line-height: 1.05;
+      }
+
+      .plain-list {
+        margin: 16px 0 0;
+        padding-left: 18px;
+      }
+
+      .section {
+        margin-top: 26px;
+      }
+
+      .panel {
+        padding: 28px;
+        border-radius: var(--radius);
+        margin-top: 26px;
+      }
+
+      .compare-grid,
+      .roadmap-grid,
+      .evidence-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .ide-card {
+        position: relative;
+        overflow: hidden;
+        padding: 28px;
+        border-radius: var(--radius);
+      }
+
+      .ide-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .ide-card--copilot::before {
+        background:
+          linear-gradient(135deg, rgba(37, 99, 235, 0.12), transparent 40%),
+          radial-gradient(circle at top right, rgba(37, 99, 235, 0.12), transparent 24%);
+      }
+
+      .ide-card--cursor::before {
+        background:
+          linear-gradient(135deg, rgba(180, 83, 9, 0.1), transparent 40%),
+          radial-gradient(circle at top right, rgba(180, 83, 9, 0.12), transparent 24%);
+      }
+
+      .card-top,
+      .pill-row,
+      .metric-row,
+      .roadmap-head {
+        position: relative;
+        z-index: 1;
+      }
+
+      .card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .card-top p {
+        margin: 10px 0 0;
+        color: var(--muted);
+      }
+
+      .badge {
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+      }
+
+      .badge--copilot {
+        color: #17419f;
+        background: var(--blue-soft);
+        border: 1px solid rgba(37, 99, 235, 0.14);
+      }
+
+      .badge--cursor {
+        color: #9a4d12;
+        background: var(--amber-soft);
+        border: 1px solid rgba(180, 83, 9, 0.14);
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .status-pill {
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+      }
+
+      .status-pill--yes {
+        color: var(--green);
+        background: var(--green-soft);
+        border: 1px solid rgba(31, 122, 69, 0.16);
+      }
+
+      .status-pill--maybe {
+        color: var(--amber);
+        background: var(--amber-soft);
+        border: 1px solid rgba(180, 83, 9, 0.16);
+      }
+
+      .status-pill--no {
+        color: var(--rose);
+        background: var(--rose-soft);
+        border: 1px solid rgba(180, 35, 24, 0.16);
+      }
+
+      .metric-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .metric-row {
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(15, 23, 36, 0.08);
+        background: rgba(255, 255, 255, 0.58);
+      }
+
+      .metric-title {
+        margin: 0;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      .metric-copy {
+        margin: 8px 0 0;
+      }
+
+      .matrix-wrap {
+        overflow-x: auto;
+        margin-top: 18px;
+        border-radius: 20px;
+        border: 1px solid rgba(15, 23, 36, 0.08);
+        background: rgba(255, 255, 255, 0.66);
+      }
+
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 760px;
+      }
+
+      .matrix th,
+      .matrix td {
+        padding: 16px 18px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid rgba(15, 23, 36, 0.08);
+      }
+
+      .matrix th {
+        color: var(--ink);
+        font-weight: 700;
+        background: rgba(37, 99, 235, 0.06);
+      }
+
+      .matrix tr:last-child td {
+        border-bottom: none;
+      }
+
+      .roadmap-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .roadmap-copy {
+        margin: 14px 0 0;
+      }
+
+      .evidence-list {
+        margin: 14px 0 0;
+        padding-left: 18px;
+      }
+
+      .footnote {
+        margin-top: 26px;
+        padding: 20px 22px;
+        border-radius: 22px;
+        border: 1px solid rgba(15, 23, 36, 0.1);
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .footnote strong {
+        color: var(--ink);
+      }
+
+      @media (max-width: 960px) {
+        .summary-grid,
+        .compare-grid,
+        .roadmap-grid,
+        .evidence-grid,
+        .qa-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          width: min(calc(100% - 20px), 1180px);
+          padding: 20px 0 60px;
+        }
+
+        .hero,
+        .panel,
+        .ide-card,
+        .summary-card,
+        .roadmap-card,
+        .evidence-card,
+        .qa-card,
+        .footnote {
+          padding: 20px;
+          border-radius: 22px;
+        }
+
+        .card-top,
+        .roadmap-head {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .hero-note,
+        .pill-row {
+          width: 100%;
+        }
+
+        .rank-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">durable-request /compact mapping</p>
+        <h1>把 chat 里的 <code>/compact</code> 封装成 durable-request 里的 <code>/compact</code> 选项</h1>
+        <p class="lede">
+          用户在 chat 输入 <code>/compact</code>，与用户在 durable-request checkpoint 里选择
+          <code>/compact</code>，本质上都是同一个宿主意图：请求上下文压缩或会话整理。<br />
+          durable-request 真正新增的价值，不是创造新的 compact 能力，而是把这个宿主动作包装成一个更稳定的协议入口，并提前把 payload、保留策略、fallback 路径、恢复摘要一起设定好。
+        </p>
+        <div class="hero-note">当前结论基于：Copilot changelog / SDK bundle、Cursor hooks docs / prompting docs / forum 里关于 <code>/summarize</code> 与 manual compaction 的证据、当前 agent 可见工具边界。</div>
+      </header>
+
+      <section class="summary-grid">
+        <article class="summary-card">
+          <p class="section-eyebrow">One-line verdict</p>
+          <h2>一句话结论</h2>
+          <ul class="plain-list">
+            <li>Copilot IDE (VS Code)：<code>/compact</code> 作为 host slash command 已被明确看到，durable-request 可以把它包装成 protocol wrapper。</li>
+            <li>Cursor IDE：更像是把 durable-request 的 <code>/compact</code> 映射到 host <code>/summarize</code>，而不是 literal <code>/compact</code>；manual compaction 已有证据，但程序化触发链仍需验证。</li>
+            <li>两边都可以把 <code>/compact</code> 选项做成“自动带策略”的入口，但真正的 host compaction 是否能被 agent 稳定直接触发，当前 Copilot 侧仍偏内部 plumbing，Cursor 侧则更像 <code>stop -&gt; /summarize</code> 的候选链。</li>
+          </ul>
+        </article>
+
+        <article class="summary-card summary-card--accent">
+          <p class="section-eyebrow">What durable-request adds</p>
+          <h2>durable-request 额外做什么</h2>
+          <ul class="plain-list">
+            <li>预设 payload：比如只保留 goals、recent decisions、active TODO、next action。</li>
+            <li>预设策略：比如 hard compact 优先，失败则回落到 soft handoff。</li>
+            <li>预设恢复路径：比如自动生成 handoff summary，再把 resume 指令注回下一轮。</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="panel">
+        <p class="section-eyebrow">Side by side</p>
+        <h2>Cursor IDE vs Copilot IDE (VS Code)</h2>
+
+        <div class="compare-grid">
+          <article class="ide-card ide-card--copilot">
+            <div class="card-top">
+              <div>
+                <h2>Copilot IDE (VS Code)</h2>
+                <p>最接近“host <code>/compact</code> wrapper”的路线，语义对齐最强。</p>
+              </div>
+              <span class="badge badge--copilot">host command confirmed</span>
+            </div>
+
+            <div class="pill-row">
+              <span class="status-pill status-pill--yes">语义等价：高</span>
+              <span class="status-pill status-pill--yes">宿主 /compact：已确认</span>
+              <span class="status-pill status-pill--maybe">agent 直触发：未公开</span>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric-row">
+                <p class="metric-title">本质判断</p>
+                <p class="metric-copy">如果用户在 chat 里输入 <code>/compact</code>，和用户在 durable-request 里选 <code>/compact</code>，在语义上是同一个动作：请求宿主对当前会话做压缩整理。</p>
+              </div>
+              <div class="metric-row">
+                <p class="metric-title">为什么成立</p>
+                <p class="metric-copy">Copilot changelog 明确出现了新的 slash command <code>/compact</code>，并同时提到 “context window rendering with compaction”。这说明 host 自己知道 compact 是什么。</p>
+              </div>
+              <div class="metric-row">
+                <p class="metric-title">durable-request 能多做什么</p>
+                <p class="metric-copy">可以把 compact 做成更强的入口：自动附带 summary 范围、需要保留的 TODO、恢复策略，甚至在未来接上 host command passthrough 时，把这些策略打包给宿主。</p>
+              </div>
+              <div class="metric-row">
+                <p class="metric-title">当前边界</p>
+                <p class="metric-copy">当前公开 agent surface 没看到 “直接 compact 当前 session” 的稳定工具。SDK bundle 里能看到 <code>compactionControl</code>、<code>compact_20260112</code>、<code>toolRunner()</code> 之类内部 plumbing，但这更像宿主 / SDK 内部路径，不是 durable-request 层可依赖的公共 API。</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="ide-card ide-card--cursor">
+            <div class="card-top">
+              <div>
+                <h2>Cursor IDE</h2>
+                <p>更像“同一用户意图的 protocol wrapper”，但 host-native 的当前候选入口更像 <code>/summarize</code>，不是 literal <code>/compact</code>。</p>
+              </div>
+              <span class="badge badge--cursor">manual summarize surfaced</span>
+            </div>
+
+            <div class="pill-row">
+              <span class="status-pill status-pill--maybe">语义等价：中</span>
+              <span class="status-pill status-pill--maybe">宿主 /summarize：已看到</span>
+              <span class="status-pill status-pill--maybe">hook 触发链：待验证</span>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric-row">
+                <p class="metric-title">本质判断</p>
+                <p class="metric-copy">Cursor 这边真正更像 manual compact 的宿主入口，是 <code>/summarize</code>。所以 durable-request 里的 <code>/compact</code> 在 Cursor 侧更合理的映射，不是 literal <code>/compact</code>，而是 host summarize intent。</p>
+              </div>
+              <div class="metric-row">
+                <p class="metric-title">为什么不是 literal /compact</p>
+                <p class="metric-copy">公开 hooks 文档只确认了 <code>preCompact(trigger=manual)</code>，论坛里 staff 与社区则反复把当前入口指向 <code>/summarize</code>。相对地，literal <code>/compact</code> 在 Cursor 侧更像未稳定或无效的命令名。</p>
+              </div>
+              <div class="metric-row">
+                <p class="metric-title">durable-request 能多做什么</p>
+                <p class="metric-copy">可以把这个选项做成“宿主 summarize 的协议入口”：<code>AskQuestion</code> 负责用户决策，<code>stop</code> hook 负责尝试自动提交 <code>/summarize</code>，<code>preCompact</code> 负责观测 manual compaction 并落 sidecar。</p>
+              </div>
+              <div class="metric-row">
+                <p class="metric-title">当前最稳 backend</p>
+                <p class="metric-copy">当前最值得验证的 backend 是 <code>AskQuestion -&gt; stop.followup_message=&quot;/summarize&quot; -&gt; preCompact(trigger=manual)</code>。如果 auto-submitted followup 不走 slash parser，再回退到 soft handoff。</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="section-eyebrow">Implementation matrix</p>
+        <h2>把 host <code>/compact</code> 与 durable-request <code>/compact</code> 放到同一张表里</h2>
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>Copilot IDE (VS Code)</th>
+                <th>Cursor IDE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>用户意图是否同构</td>
+                <td>是。用户输入 <code>/compact</code> 与 checkpoint 选中 <code>/compact</code> 可视为同一个 host intent。</td>
+                <td>大体是，但当前更像映射到 host <code>/summarize</code>，不是 literal <code>/compact</code>。</td>
+              </tr>
+              <tr>
+                <td>host compact 能力是否已确认</td>
+                <td>已确认。changelog 明确列出 <code>/compact</code>。</td>
+                <td>部分确认。<code>preCompact(trigger=manual)</code> 与论坛里的 <code>/summarize</code> 共同说明 manual compaction 存在，但命令名和触发面并不干净。</td>
+              </tr>
+              <tr>
+                <td>durable-request 是否能预设 payload / 策略</td>
+                <td>可以，而且价值很高。</td>
+                <td>可以，而且这是当前最稳的价值来源。</td>
+              </tr>
+              <tr>
+                <td>agent 是否能稳定直接触发 host compact</td>
+                <td>当前没有公开 agent API 证据，只看到内部 SDK plumbing 迹象。</td>
+                <td>还不能当承诺，但已有一条值得验证的内建候选链：<code>stop.followup_message=&quot;/summarize&quot;</code>。</td>
+              </tr>
+              <tr>
+                <td>现在推荐的实现形态</td>
+                <td><strong>Host wrapper first</strong>：优先把 durable-request <code>/compact</code> 当成 host compact 的协议外壳，再准备 soft fallback。</td>
+                <td><strong>Summarize wrapper first</strong>：优先把 durable-request <code>/compact</code> 映射到 Cursor <code>/summarize</code>，再准备 soft fallback。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="section-eyebrow">Cursor trigger chain</p>
+        <h2>Cursor 侧当前最值得验证的 host-native compact 触发链</h2>
+
+        <div class="qa-grid">
+          <article class="qa-card">
+            <p>
+              这轮调研把 Cursor 的主入口从 literal <code>/compact</code> 修正成了 <strong><code>/summarize</code></strong>。
+              公开 hooks 文档确认了 <code>preCompact(trigger=manual)</code>，论坛里则有 staff 明确说 <code>/summarize still works in the agents window</code>。
+              所以 durable-request 在 Cursor 端更合理的定位，是把用户选中的 <code>/compact</code> 包装成一次 host summarize 请求。
+            </p>
+
+            <div class="rank-list">
+              <div class="rank-row">
+                <div class="rank-no">Step 1</div>
+                <div><strong><code>AskQuestion</code></strong> 继续作为唯一核心 checkpoint。用户在这里选 durable-request <code>/compact</code>。</div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">Step 2</div>
+                <div>agent 不在当前流里立即发 summarize，而是先把 <code>requested_compact=true</code> 写进 sidecar，避免 mid-stream slash command 把当前工作流打断。</div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">Step 3</div>
+                <div><strong><code>stop</code> hook</strong> 在 agent loop 边界返回 <code>followup_message: &quot;/summarize&quot;</code>，把 summarize 当成下一条宿主消息自动提交。</div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">Step 4</div>
+                <div>如果 auto-submitted followup 走同一套 slash parser，宿主执行 manual summarize，随后 <code>preCompact</code> 应观察到 <code>trigger=&quot;manual&quot;</code>。</div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">Step 5</div>
+                <div>compact 后 durable-request 协议本体仍靠 Rules / <code>AGENTS.md</code> 常驻；真正需要恢复的是 sidecar 里的动态 task state，而不是把整套协议再注回一遍。</div>
+              </div>
+            </div>
+
+            <div class="capsule-box">
+              <strong>当前最关键的 open gap：</strong> 文档虽然确认 <code>stop.followup_message</code> 会自动提交“下一条用户消息”，但没有白纸黑字确认这条自动消息会不会和手打输入一样走 slash-command parser。
+              所以这条链已经从“纯猜测”升级成“高价值待验证方案”，但还不该写成已稳定量产能力。
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="section-eyebrow">Three follow-ups</p>
+        <h2>三个补充问题</h2>
+
+        <div class="qa-grid">
+          <article class="qa-card">
+            <p class="section-eyebrow">Q1</p>
+            <h3>Cursor 的 soft compact / handoff 和 hard compact，差别到底在哪里？</h3>
+            <p>
+              <strong>hard compact</strong> 是宿主原生压缩：同一个 session 不变，宿主在内部对长上下文做裁剪、总结或重排，agent 继续留在原来的会话轨道里。
+              它的关键特征不是“有 summary”，而是 <strong>会话身份、宿主内部上下文管理、可能的缓存路径和隐藏状态都尽量不换轨</strong>。
+            </p>
+            <p>
+              <strong>soft compact / handoff</strong> 则是 agent 自己显式写一个交接包：把目标、已决策内容、TODO、下一步、协议要求整理出来，再由新一轮对话或恢复逻辑重新加载。
+              它的关键特征不是“压缩算法”，而是 <strong>用显式文档替代宿主内部状态</strong>。
+            </p>
+            <div class="capsule-box">
+              在 Cursor 当前 durable-request 实现里，稳定可控的是 <strong>soft compact / handoff</strong>，因为现有证据链仍然落在 <code>checkpoint.sh</code>、<code>checkpoint-ui.sh</code>、<code>steering-hook.sh</code> 这些 shell / tmux / stdout 注入通道上；
+              还没有证据表明当前就能稳定直达宿主 hard compact backend。
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <p class="section-eyebrow">Q2</p>
+            <h3>从 cache 友好角度，哪种 compact 最好？</h3>
+            <div class="rank-list">
+              <div class="rank-row">
+                <div class="rank-no">No.1</div>
+                <div>
+                  <strong>host hard compact</strong>。<br />
+                  这是最 cache-friendly 的形态，因为它最有机会保持原有 session continuity，由宿主在内部做 compaction，而不是把一大段新 summary 重新拼进 prompt。
+                </div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">No.2</div>
+                <div>
+                  <strong>结构化 soft compact</strong>。<br />
+                  如果没有 hard compact，次优方案不是长篇 prose handoff，而是一个字段固定、顺序固定、长度受控的 compact capsule，例如：goals / decisions / active todo / next action / protocol state。
+                  这种格式对 prompt cache 更友好，因为稳定前缀更容易重复命中。
+                </div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">No.3</div>
+                <div>
+                  <strong>自由文本 handoff</strong>。<br />
+                  这是最不 cache-friendly 的方式，因为每次 compact 后文本表述都会大幅波动，前缀不稳定，token churn 高，而且更容易把协议要求埋在自然语言里。
+                </div>
+              </div>
+            </div>
+            <div class="capsule-box">
+              如果你关心 cache，不要把 compact 做成“自动写一大段总结”。更稳的 portable 策略是：<strong>稳定协议前缀 + 小而固定的结构化 handoff payload</strong>。
+            </div>
+          </article>
+
+          <article class="qa-card">
+            <p class="section-eyebrow">Q3</p>
+            <h3>compact 容易让 agent 忘掉 durable-request 协议，怎么防止它中途跳出？</h3>
+            <p>
+              关键点是：<strong>不能只依赖文档 handoff</strong>。如果 durable-request 协议只存在于“上一轮对话记忆”或“这次 summary 文案”里，那 compact 之后它就最容易被弱化、截断或遗漏。
+            </p>
+            <p>
+              更稳的做法是把 compact payload 分成三层：
+            </p>
+            <div class="rank-list">
+              <div class="rank-row">
+                <div class="rank-no">Layer 1</div>
+                <div>
+                  <strong>Protocol capsule</strong>：durable-request 的关键行为约束，用短、小、版本化、固定字段的格式保存，例如 <code>must_checkpoint=true</code>、<code>checkpoint_style=cursor-cli</code>、<code>pending_checkpoint=false</code>、<code>resume_mode=handoff</code>。
+                </div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">Layer 2</div>
+                <div>
+                  <strong>Task handoff</strong>：当前任务状态本身，例如目标、已完成内容、未决问题、下一步和必要文件。
+                </div>
+              </div>
+              <div class="rank-row">
+                <div class="rank-no">Layer 3</div>
+                <div>
+                  <strong>Re-entry guard</strong>：compact 后第一次恢复时，外部机制必须把 protocol capsule 再显式注入一遍，而不是赌模型自己记得。对于 Cursor，这个 guard 最自然的落点就是 hook / shell 注入；对于 Copilot，则更适合作为 customization / wrapper 层的固定恢复动作。
+                </div>
+              </div>
+            </div>
+            <div class="capsule-box">
+              所以答案不是“只通过 handoff 文档”，而是 <strong>文档 handoff + 协议 sidecar + post-compact rehydrate</strong>。
+              如果现在把 compact 变成用户显式可触发动作，最稳的实现不是让 compact 自己“顺便带一段自然语言提醒”，而是让 wrapper 自动附带一个 <strong>稳定、短、机器友好的 durable-request protocol capsule</strong>，并在 compact 后首次恢复时强制再注回去。
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="roadmap-grid section">
+        <article class="roadmap-card">
+          <div class="roadmap-head">
+            <div>
+              <p class="section-eyebrow">Recommended backend</p>
+              <h3>Copilot 侧建议</h3>
+            </div>
+            <span class="status-pill status-pill--yes">wrapper over host compact</span>
+          </div>
+          <p class="roadmap-copy">
+            durable-request 把每个 checkpoint 的 <code>/compact</code> 做成一个稳定选项。<br />
+            如果宿主开放 command passthrough，就直接转到 host <code>/compact</code>；如果没有公开调用面，就降级成“生成 compact plan + 让宿主执行 /compact + 重新恢复关键状态”。
+          </p>
+        </article>
+
+        <article class="roadmap-card">
+          <div class="roadmap-head">
+            <div>
+              <p class="section-eyebrow">Recommended backend</p>
+              <h3>Cursor 侧建议</h3>
+            </div>
+            <span class="status-pill status-pill--maybe">summarize wrapper first</span>
+          </div>
+          <p class="roadmap-copy">
+            把 <code>/compact</code> 视为 durable-request 的协议动作，但在 Cursor 侧优先映射到 host <code>/summarize</code>。<br />
+            最值得先试的链是：<code>AskQuestion</code> 选项 -&gt; <code>stop.followup_message=&quot;/summarize&quot;</code> -&gt; <code>preCompact(trigger=manual)</code>。如果 followup 不走 slash parser，再回退到 soft handoff。
+          </p>
+        </article>
+      </section>
+
+      <section class="evidence-grid section">
+        <article class="evidence-card">
+          <p class="section-eyebrow">Confirmed evidence</p>
+          <h3>已经能站稳的部分</h3>
+          <ul class="evidence-list">
+            <li>Copilot changelog 明确写出新的 slash commands 包括 <code>/compact</code>。</li>
+            <li>Copilot changelog 明确写出 <code>askQuestions</code> moved into VS Code core。</li>
+            <li>Cursor hooks 文档明确列出 <code>preCompact</code>，并给出 <code>trigger=manual|auto</code>。</li>
+            <li>Cursor forum 里有 staff 明确说 <code>/summarize still works in the agents window</code>。</li>
+            <li>论坛里已出现把 <code>/compact</code> 需求收敛到 <code>/summarize</code> / “Reset Context” 的证据链，说明 host 侧已有 manual summarize surface。</li>
+          </ul>
+        </article>
+
+        <article class="evidence-card">
+          <p class="section-eyebrow">Boundary</p>
+          <h3>仍然要保守表述的部分</h3>
+          <ul class="evidence-list">
+            <li>Copilot SDK 里能看到 <code>compactionControl</code>、<code>compact_20260112</code> 和 <code>toolRunner()</code>，但这更像内部 plumbing，而不是稳定公开 agent API。</li>
+            <li>没有公开证据表明 durable-request 当前就能在 Cursor 里直接 dispatch literal <code>/compact</code>；更像的宿主入口是 <code>/summarize</code>。</li>
+            <li><code>stop.followup_message=&quot;/summarize&quot;</code> 是高价值候选链，但还没拿到“auto-submitted followup 一定走 slash parser”这一步的硬证据。</li>
+            <li>“Reset Context” 在论坛里也被提到，但语义和稳定性仍然模糊，不能先拿它当自动化 target。</li>
+            <li>因此产品表达最好不要写成“durable-request 新增 compact 能力”，而要写成“durable-request 提供 compact wrapper / orchestration layer”。</li>
+          </ul>
+        </article>
+      </section>
+
+      <div class="footnote">
+        <strong>建议最终措辞：</strong>
+        durable-request 里的 <code>/compact</code> 不应被描述成一个新的压缩能力；它更准确的定位是
+        <strong>宿主 compact 的协议包装层</strong>。
+        在 Copilot IDE，它可以优先映射到真实 host <code>/compact</code>；在 Cursor IDE，它当前应先映射到
+        <strong>host <code>/summarize</code> wrapper</strong>，并用 <code>stop</code> / <code>preCompact</code> / Rules / sidecar 去补足协议与恢复逻辑；如果这条链不稳定，再回退到 policy-driven soft compact。
+      </div>
+    </main>
+  </body>
+</html>

@@ -6,8 +6,8 @@ This guide is designed to be read and executed by an LLM agent.
 
 Three components:
 
-1. **Skill package** (`skill/` — 7 files) — teaches any AI agent to present interactive checkpoints, handle steering acknowledgements, and manage the durable loop. Works on all platforms. Includes SKILL.md, checkpoint scripts, steering tools, and todo-cleanup.
-2. **CLI checkpoint tool** (`skill/checkpoint.sh` + `skill/checkpoint-ui.sh`, Cursor CLI only) — enables true blocking interactive checkpoints in Cursor CLI via tmux split panes. Already included in the skill package above.
+1. **Skill package** (8 files, mirrored in `.claude/`, `.cursor/`, `.github/skills/durable-request/`) — teaches any AI agent to present interactive checkpoints, handle steering acknowledgements, manage the durable loop, and enter deep sleep when the user is away. Includes SKILL.md, checkpoint scripts, deep-sleep, steering tools, and todo-cleanup.
+2. **CLI checkpoint tool** (`checkpoint.sh` + `checkpoint-ui.sh`, Cursor CLI only) — enables true blocking interactive checkpoints in Cursor CLI via tmux split panes. Already included in the skill package above.
 3. **Steering runtime + IDE extension** (Cursor only) — mid-task instructions via CLI (`steer`), tmux popup, or Cursor IDE extension (status bar button + Ctrl+Shift+S). Installed by running `install-steering.sh`.
 
 ## Step 1: Clone the Repository
@@ -36,18 +36,20 @@ Install to **project-level** (current directory) and **personal** (`~`) for each
 | Cody | `.cody/skills/durable-request/` | `~/.cody/skills/durable-request/` |
 | Continue | `.continue/skills/durable-request/` | `~/.continue/skills/durable-request/` |
 
-For **Cursor** (personal), run:
+For **Cursor, Claude Code, and GitHub Copilot** (personal), run:
 
 ```bash
-DIR=~/.cursor/skills/durable-request && mkdir -p "$DIR" && \
-cp /tmp/durable-request-repo/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
-chmod +x "$DIR"/*.sh "$DIR/steer"
+for DIR in ~/.cursor/skills/durable-request ~/.claude/skills/durable-request ~/.github/skills/durable-request; do
+  mkdir -p "$DIR" && \
+  cp /tmp/durable-request-repo/.cursor/skills/durable-request/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,deep-sleep.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
+  chmod +x "$DIR"/*.sh "$DIR/steer"
+done
 ```
 
 For **other platforms** (SKILL.md is sufficient — no shell scripts needed):
 
 ```bash
-mkdir -p <directory> && cp /tmp/durable-request-repo/skill/SKILL.md <directory>/SKILL.md
+mkdir -p <directory> && cp /tmp/durable-request-repo/.cursor/skills/durable-request/SKILL.md <directory>/SKILL.md
 ```
 
 ## Step 3: Configure tmux for Cursor CLI (Cursor CLI only)
@@ -95,7 +97,7 @@ ls -la ~/.cursor/skills/durable-request/checkpoint*.sh
 
 This step is **only for Cursor** users (both IDE and CLI). Skip for other platforms.
 
-Run the one-click installation script **from the repo directory** so it can resolve `./skill/` locally:
+Run the one-click installation script **from the repo directory** so it can resolve `./` locally:
 
 ```bash
 cd /tmp/durable-request-repo && bash install-steering.sh

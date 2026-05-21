@@ -56,6 +56,28 @@ export function Navbar() {
             Roadmap
           </Link>
           <Link
+            to="/enhance-me"
+            className={`relative hover:text-[var(--foreground)] transition-colors ${
+              location.pathname === "/enhance-me" ? "text-[var(--foreground)] font-semibold" : ""
+            }`}
+          >
+            /enhance-me
+            <span className="absolute -top-2.5 -right-6 px-1 py-0.5 text-[9px] font-bold rounded bg-gradient-to-r from-rose-500 to-orange-500 text-white animate-pulse leading-none">
+              HOT
+            </span>
+          </Link>
+          <Link
+            to="/deep-sleep"
+            className={`relative hover:text-[var(--foreground)] transition-colors ${
+              location.pathname === "/deep-sleep" ? "text-[var(--foreground)] font-semibold" : ""
+            }`}
+          >
+            Deep Sleep
+            <span className="absolute -top-2.5 -right-6 px-1 py-0.5 text-[9px] font-bold rounded bg-gradient-to-r from-rose-500 to-orange-500 text-white animate-pulse leading-none">
+              HOT
+            </span>
+          </Link>
+          <Link
             to="/steering"
             className={`hover:text-[var(--foreground)] transition-colors ${
               location.pathname === "/steering" ? "text-[var(--foreground)] font-semibold" : ""

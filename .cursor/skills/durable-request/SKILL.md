@@ -113,7 +113,7 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
         {"id": "A", "label": "<most likely next action>"},
         {"id": "B", "label": "<second most likely action>"},
         {"id": "C", "label": "<third most likely action>"},
-        {"id": "D", "label": ""}
+        {"id": "D", "label": "/deep-sleep"}
       ],
       "allow_multiple": false
     }
@@ -124,8 +124,10 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
 Rules:
 
 - **Single question only** — never use multiple questions
-- **Exactly 4 options**: A, B, C are context-generated likely paths; D is empty for freeform
+- **Exactly 4 options**: A, B, C are context-generated likely paths; D is always `/deep-sleep`
 - Generate A/B/C based on context — predict the 3 most probable user intents
+- D is a fixed shortcut — when user selects it, invoke deep-sleep.sh immediately
+- Cursor IDE automatically appends a freeform text input after the last option — do NOT add an empty option manually
 - The `prompt` should be a 1-2 sentence summary of what was completed
 
 `AskQuestion` **blocks your turn without ending the request**. This is what makes the request "durable."
@@ -161,7 +163,8 @@ In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Questio
 
 Rules:
 
-- **3 radio options + 1 text field (D)** — generate A/B/C based on context
+- **3 radio options + 1 deep-sleep option (D)** — generate A/B/C based on context; D is always `/deep-sleep`
+- The IDE auto-appends a freeform text field — do NOT add an empty option
 - The `label` in the radio field is the task summary
 - The Question Carousel **blocks the turn** until user responds
 
@@ -188,7 +191,7 @@ Rules:
 - Call this via the **Shell** tool
 - First argument is the prompt (1-2 sentence summary)
 - **Generate 3 context-specific options** (A, B, C) — predict most likely user intents
-- The script automatically appends an empty option (D) for freeform input
+- The script automatically appends D (`/deep-sleep`) — freeform input is handled by the UI
 - The script returns `[durable-request] User responded: <choice>` — use this to continue
 - If tmux is not available, the script auto-selects the first option
 
@@ -206,24 +209,11 @@ fallback when `question` is available.
 Use a single question with concise context-adapted options and let the built-in custom
 answer path handle freeform follow-up.
 
-### Step 3: Handle the Result + Call Reinforce
+### Step 3: Handle the Result — VERBOSE and EXPLICIT
 
-**After the checkpoint tool returns the user's response**, IMMEDIATELY call `reinforce.sh` via Shell:
+**You MUST be explicit about what happened.** Never silently fall back. Never silently succeed. Always tell the user what tool you attempted and what the outcome was.
 
-```bash
-bash ~/.cursor/skills/durable-request/reinforce.sh \
-  --skill-path "~/.cursor/skills/durable-request/SKILL.md"
-```
-
-This applies to **ALL environments** (IDE, CLI, Claude Code, OpenCode). In CLI mode, `checkpoint.sh` calls `reinforce.sh` automatically — you don't need to call it again. In IDE mode (AskQuestion), you MUST call it yourself via Shell after receiving the user's response.
-
-`reinforce.sh` outputs:
-- `[ANCHOR]` — reminder to keep the durable-checkpoint todo in_progress
-- `[PROTOCOL REFRESH]` (every 5 checkpoints) — re-read SKILL.md to prevent attention decay
-
-**When you see `[PROTOCOL REFRESH]`, you MUST re-read the SKILL.md file before continuing.** Also re-read when context compaction occurs (you'll notice earlier instructions feeling unfamiliar).
-
-#### Reporting the result
+#### If the tool SUCCEEDED:
 
 For `AskQuestion` / `AskUserQuestion` / `question`:
 
@@ -243,23 +233,63 @@ The script auto-selects the first option and prints setup instructions. Tell the
 
 The agent continues with the auto-selected option.
 
-#### If the expected tool is missing
+#### If NO interactive tool exists
 
-The environment detection table above already specifies each platform's tool. If that tool is unavailable: **ERROR — report failure.** Conversational fallback (numbered text options) is ONLY for subagents that truly lack any interactive mechanism.
+Use the platform-specific tool. If it's unavailable, handle as follows:
+
+
+| Environment  | Tool Missing                          | Action                                  |
+| ------------ | ------------------------------------- | --------------------------------------- |
+| Cursor IDE   | `AskQuestion` unavailable             | You're in CLI — use `checkpoint.sh`     |
+| Copilot IDE  | `#vscode/askQuestions` unavailable    | ERROR — report failure, do not fallback |
+| Cursor CLI   | `Shell` / `checkpoint.sh` unavailable | ERROR — report failure, do not fallback |
+| OpenCode     | `question` unavailable                | ERROR — report failure, do not fallback |
+| Claude Code  | `AskUserQuestion` unavailable         | ERROR — report failure, do not fallback |
+| Subagent     | No interactive tools at all           | Conversational fallback allowed         |
+
+
+**Conversational fallback (numbered text options) is ONLY for subagents that truly lack any interactive mechanism.** If you are in Cursor IDE, Cursor CLI, OpenCode, or Claude Code and the expected tool fails — ERROR. Do NOT substitute text fallback. Report the issue explicitly so the user knows something is wrong.
 
 ### The TodoWrite + Checkpoint Reinforcement Pattern
 
-Always call `TodoWrite` and the checkpoint tool **in the same tool call batch** — this creates a double-lock. TodoWrite anchors the obligation; the checkpoint tool blocks the turn. This is **not optional**.
+The key insight: calling `TodoWrite` and the checkpoint **together in the same tool call batch** creates a double-lock:
+
+```
+┌─────────────────── SAME TOOL CALL BATCH ───────────────────┐
+│                                                            │
+│  TodoWrite([{                          AskQuestion({       │
+│    id: "durable-checkpoint",             ...               │
+│    content: "Present checkpoint",      })                  │
+│    status: "in_progress"               OR                  │
+│  }])                                   Shell: checkpoint.sh│
+│                                        (in CLI)            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- **IDE**: `AskQuestion` blocks turn, user responds, mark todo complete, continue
+- **CLI**: `checkpoint.sh` via Shell blocks, user responds in tmux pane, continue
+- **CLI (AskQuestion tried first and failed)**: immediately call `checkpoint.sh`
+- **Subagent with no interactive tools**: conversational fallback in text
+
+This is **not optional**. Always pair TodoWrite with the checkpoint.
 
 ## Anti-Silent-Completion Rules
 
-If you catch yourself thinking any of these, STOP — you're about to end silently:
+These thoughts mean STOP — you're about to end silently:
 
-- "Task is done" → present checkpoint FIRST
-- "That's all they asked for" → they may want more — ASK
-- "The output speaks for itself" → never assume, present options
-- "They'll ask if they want more" → YOUR job to offer
-- "TodoWrite is overhead" → it's the anchor that prevents silent endings
+
+| Thought                                 | Correct Action                                                                                                               |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| "Task is done, I'll wrap up"            | Present checkpoint FIRST                                                                                                     |
+| "That's all they asked for"             | They may want more — ASK                                                                                                     |
+| "Simple change, no need to check"       | Simple changes still need confirmation                                                                                       |
+| "I already explained what I did"        | Explanation ≠ checkpoint. Still ask.                                                                                         |
+| "The output speaks for itself"          | Never assume. Present options.                                                                                               |
+| "They'll ask if they want more"         | YOUR job to offer. Don't shift burden.                                                                                       |
+| "I'm a subagent, I just return results" | Still present a checkpoint. Use builtin interactive tools if available; only use text fallback if none exist.                |
+| "AskQuestion isn't available"           | Check for the environment's actual interactive tool (`question`, `AskUserQuestion`, or `checkpoint.sh`) before any fallback. |
+| "TodoWrite is overhead"                 | TodoWrite is the anchor that prevents silent endings. Always use it.                                                         |
 
 
 ## Multi-Step Tasks
@@ -301,11 +331,40 @@ The script outputs the cleaned list. Pass it to `TodoWrite({ todos: ..., merge: 
 
 ## The Durable Loop Pattern
 
-**Do Work → TodoWrite (anchor) → Checkpoint tool (block) → User responds → repeat.**
+### Editor (AskQuestion available)
 
-If user selects "done" → END. Otherwise → execute their choice → checkpoint again.
+```
+┌──────────────────────────────────────────────────────────────┐
+│                      Single Request                          │
+│                                                              │
+│  ┌──────────┐  ┌───────────┐  ┌────────────┐  ┌──────────┐ │
+│  │ Do Work  │─▶│ TodoWrite │─▶│ AskQuestion│─▶│ User     │ │
+│  │          │  │ (anchor)  │  │ (block)    │  │ Responds │ │
+│  └──────────┘  └───────────┘  └────────────┘  └────┬─────┘ │
+│       ▲                                            │       │
+│       │        "done" ────────────────────▶  END   │       │
+│       └─────────── anything else ◀─────────────────┘       │
+└──────────────────────────────────────────────────────────────┘
+```
 
-For detailed flow diagrams, see `references/flow-diagrams.md`.
+### CLI (checkpoint.sh via Shell — true durable loop)
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                      Single Request                          │
+│                                                              │
+│  ┌──────────┐  ┌───────────┐  ┌──────────────┐ ┌──────────┐│
+│  │ Do Work  │─▶│ TodoWrite │─▶│ Shell:       │─▶│ User     ││
+│  │          │  │ (anchor)  │  │ checkpoint.sh│  │ picks in ││
+│  └──────────┘  └───────────┘  │ (blocks)     │  │ terminal ││
+│       ▲                       └──────────────┘  └────┬─────┘│
+│       │        "done" ────────────────────────▶ END  │      │
+│       └─────────── anything else ◀───────────────────┘      │
+│                                                              │
+│  checkpoint.sh creates tmux split pane → user picks option   │
+│  → pane auto-closes → agent reads response from stdout       │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## Steering (Optional)
 
@@ -415,18 +474,74 @@ Steering and checkpoints are complementary:
 - **Steering**: User redirects you while you're working
 - **Checkpoint**: You pause and ask what to do next
 
-## Guardrail Harness (G1 + G3)
+## Deep Sleep (Optional)
 
-`reinforce.sh` provides layered drift defense for long sessions:
+Deep sleep keeps the agent alive when the user is away for an extended period. Instead of the request timing out, the agent enters a low-power polling loop that prints periodic keep-alive messages.
 
-- **G1 — `[NEXT]` directives**: Tell you what to do after the checkpoint (execute user's choice, then checkpoint again). Appears in the most-recent tool output for maximum attention.
-- **G3 — Protocol refresh**: Every 5 checkpoints, prints `[PROTOCOL REFRESH]` instructing you to re-read this SKILL.md. **When you see this, you MUST re-read the file.** This prevents attention decay in long sessions.
-- **G2 — Anchor reminder**: Reminds you to keep `durable-checkpoint` as `in_progress`.
+### When to Use Deep Sleep
 
-**How it's called:**
-- **CLI**: `checkpoint.sh` calls `reinforce.sh` automatically — zero agent effort.
-- **IDE / all other environments**: You MUST call `reinforce.sh` via Shell after every `AskQuestion` / `question` / `AskUserQuestion` response (see Step 3 above).
-- **Context compaction**: If you suspect context compaction occurred (early instructions feel unfamiliar), call `reinforce.sh` proactively.
+Use deep sleep when:
+- You've presented a checkpoint (AskQuestion) but suspect the user has stepped away
+- A long-running background task is still executing and you need to stay alive
+- The user explicitly says they'll be back later (e.g., "I'll be back in 30 minutes")
+
+Do NOT use deep sleep:
+- As a substitute for checkpoints — always checkpoint first
+- When the user is actively responding
+- In subagents (they should just return results)
+
+### How to Invoke Deep Sleep
+
+Call `deep-sleep.sh` via the Shell tool:
+
+```bash
+bash ~/.cursor/skills/durable-request/deep-sleep.sh [timeout_minutes]
+```
+
+- Default timeout: 1440 minutes (24 hours)
+- The script prints `[deep-sleep] Still sleeping... X/Y min elapsed. I am working, keep waiting...` every 60 seconds
+- This keeps the Shell tool blocking and prevents the request from timing out
+
+### Wake Mechanism
+
+The script polls for a wake file. The user can wake the agent by:
+
+```bash
+touch ~/.cursor/skills/durable-request/.deep-sleep-wake
+```
+
+When woken (or when max timeout is reached), the script prints:
+
+```
+[deep-sleep] Wake signal received after X minute(s).
+[deep-sleep] Agent resuming — continue your work and present a checkpoint.
+```
+
+**After waking, you MUST present a new checkpoint to the user.** Deep sleep is a bridge, not a destination.
+
+### Deep Sleep Flow
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│  Checkpoint presented (AskQuestion / checkpoint.sh)          │
+│       │                                                      │
+│       ▼                                                      │
+│  User doesn't respond for a while / says "brb"              │
+│       │                                                      │
+│       ▼                                                      │
+│  Shell: deep-sleep.sh 120                                    │
+│       │                                                      │
+│       ├── every 60s: "[deep-sleep] Still sleeping..."        │
+│       │                                                      │
+│       ▼                                                      │
+│  Wake signal received OR timeout                             │
+│       │                                                      │
+│       ▼                                                      │
+│  Present new checkpoint to user                              │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## Integration with Other Skills
 

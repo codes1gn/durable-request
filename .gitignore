@@ -1,4 +1,5 @@
-.cursor/
+.cursor/*
+!.cursor/skills/
 __pycache__/
 *.pyc
 skill/.reinforce-counter
