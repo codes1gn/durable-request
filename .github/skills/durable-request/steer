@@ -1,0 +1,263 @@
+#!/bin/bash
+# steer - Send steering message to durable-request agent
+#
+# Usage:
+#   steer <message>           Send a steering message
+#   steer --popup             Open interactive tmux popup/pane
+#   steer --clear             Clear pending steering
+#   steer --status            Show pending steering
+#   steer --help              Show this help
+#
+# Examples:
+#   steer "focus on the API layer"
+#   steer "skip tests, continue with implementation"
+#   steer "stop current task, urgent bug in production"
+#   steer --popup             # Opens interactive UI in tmux
+#
+# The message will be picked up by the preToolUse hook at the next Shell tool call.
+# For Shell tools, the message is injected into the command output so the model sees it.
+# For other tools, the message remains pending until a Shell tool is called.
+
+set -euo pipefail
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+STEERING_DIR="${DURABLE_REQUEST_DATA_DIR:-$HOME/.durable-request/data}"
+STEERING_FILE="$STEERING_DIR/steering-message"
+STEERING_HISTORY="${DURABLE_REQUEST_HISTORY_DIR:-$HOME/.durable-request/history}"
+
+# UI script location (try multiple locations)
+UI_SCRIPT=""
+for candidate in \
+  "$SCRIPT_DIR/steer-ui.sh" \
+  "$SCRIPT_DIR/../skill/steer-ui.sh" \
+  "$HOME/.durable-request/bin/steer-ui.sh" \
+  "$HOME/.durable-request/skill/steer-ui.sh" \
+  "/home/albert/workspace/durable-request/skill/steer-ui.sh"; do
+  if [ -f "$candidate" ]; then
+    UI_SCRIPT="$candidate"
+    break
+  fi
+done
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+usage() {
+  cat << 'EOF'
+Usage: steer <message>
+       steer --popup
+       steer --clear
+       steer --status
+       steer --help
+
+Send a steering message to the running durable-request agent.
+The message will be processed at the next tool call.
+
+Commands:
+  <message>     Queue a steering message
+  --popup, -p   Open interactive tmux popup/pane for input
+  --clear, -c   Clear any pending steering message
+  --status, -s  Show the current pending steering message
+  --help, -h    Show this help
+
+Examples:
+  steer "focus on the API layer"
+  steer "skip tests, continue with implementation"  
+  steer "stop current task, urgent bug in production"
+  steer --popup   # Interactive input in tmux
+
+Environment Variables:
+  DURABLE_REQUEST_DATA_DIR    Override steering file location
+                              (default: ~/.durable-request/data)
+
+Tmux Keybinding (add to ~/.tmux.conf):
+  bind-key s run-shell "~/.durable-request/bin/steer --popup"
+
+EOF
+}
+
+log_info() {
+  echo -e "${GREEN}[steer]${NC} $1"
+}
+
+log_warn() {
+  echo -e "${YELLOW}[steer]${NC} $1"
+}
+
+log_error() {
+  echo -e "${RED}[steer]${NC} $1" >&2
+}
+
+# Ensure directory exists
+ensure_dir() {
+  mkdir -p "$STEERING_DIR"
+}
+
+# Write steering message
+write_steering() {
+  local message="$1"
+  ensure_dir
+  echo "$message" > "$STEERING_FILE"
+  
+  # Optional: log to history
+  if [ -n "${DURABLE_REQUEST_LOG_HISTORY:-}" ]; then
+    mkdir -p "$STEERING_HISTORY"
+    echo "[$(date -Iseconds)] $message" >> "$STEERING_HISTORY/steering.log"
+  fi
+}
+
+# Read pending steering
+read_steering() {
+  if [ -f "$STEERING_FILE" ]; then
+    cat "$STEERING_FILE"
+  else
+    echo ""
+  fi
+}
+
+# Clear steering
+clear_steering() {
+  if [ -f "$STEERING_FILE" ]; then
+    rm -f "$STEERING_FILE"
+    log_info "Steering cleared"
+  else
+    log_info "No pending steering to clear"
+  fi
+}
+
+# Show status
+show_status() {
+  if [ -f "$STEERING_FILE" ]; then
+    local msg
+    msg=$(cat "$STEERING_FILE")
+    log_info "Pending steering: ${BLUE}\"$msg\"${NC}"
+    log_info "Will be processed at next tool call"
+  else
+    log_info "No pending steering"
+  fi
+}
+
+# Find tmux session (reuse checkpoint logic)
+find_tmux_session() {
+  # Strategy 1: Find cursor-agent process with a real TTY, match to tmux pane
+  local pids
+  pids=$(pgrep -f 'cursor-agent' 2>/dev/null || true)
+  for pid in $pids; do
+    local tty
+    tty=$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ' || true)
+    [ -z "$tty" ] || [ "$tty" = "?" ] && continue
+    local target
+    target=$(tmux list-panes -a -F '#{pane_tty} #{session_name}:#{window_index}' 2>/dev/null \
+      | grep "/dev/$tty" \
+      | head -1 \
+      | awk '{print $2}')
+    if [ -n "$target" ]; then
+      echo "$target"
+      return 0
+    fi
+  done
+
+  # Strategy 2: Check if there's a tmux session named "cursor"
+  if tmux has-session -t cursor 2>/dev/null; then
+    echo "cursor:0"
+    return 0
+  fi
+
+  # Strategy 3: Use the first available tmux session
+  local first_session
+  first_session=$(tmux list-sessions -F '#{session_name}' 2>/dev/null | head -1 || true)
+  if [ -n "$first_session" ]; then
+    echo "$first_session:0"
+    return 0
+  fi
+
+  return 1
+}
+
+# Open popup/pane UI
+open_popup() {
+  if [ -z "$UI_SCRIPT" ]; then
+    log_error "UI script not found. Install durable-request properly or use 'steer <message>' directly."
+    exit 1
+  fi
+
+  local TMUX_TARGET=""
+
+  if [ -n "${TMUX:-}" ]; then
+    TMUX_TARGET=$(tmux display-message -p '#{session_name}:#{window_index}' 2>/dev/null || true)
+  elif command -v tmux &>/dev/null; then
+    TMUX_TARGET=$(find_tmux_session || true)
+  fi
+
+  if [ -z "$TMUX_TARGET" ]; then
+    log_error "tmux session not found."
+    log_info "Run this inside tmux, or use 'steer <message>' directly."
+    exit 1
+  fi
+
+  # Try popup first (tmux 3.2+), fall back to split-pane
+  local tmux_version
+  tmux_version=$(tmux -V 2>/dev/null | sed 's/[^0-9.]//g' | head -1)
+  local major_version
+  major_version=$(echo "$tmux_version" | cut -d. -f1)
+
+  if [ "${major_version:-0}" -ge 3 ]; then
+    # Use popup (nicer UI, centered)
+    tmux display-popup -t "$TMUX_TARGET" -w 60 -h 12 -E "bash '$UI_SCRIPT'" 2>/dev/null || \
+      tmux split-window -t "$TMUX_TARGET" -v -l 8 "bash '$UI_SCRIPT'" 2>/dev/null
+  else
+    # Fall back to split pane
+    tmux split-window -t "$TMUX_TARGET" -v -l 8 "bash '$UI_SCRIPT'" 2>/dev/null
+  fi
+
+  if [ $? -ne 0 ]; then
+    log_error "Failed to open tmux UI."
+    exit 1
+  fi
+}
+
+# Main
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  --popup|-p)
+    open_popup
+    exit 0
+    ;;
+  --clear|-c)
+    clear_steering
+    exit 0
+    ;;
+  --status|-s)
+    show_status
+    exit 0
+    ;;
+  "")
+    log_error "No message provided"
+    echo ""
+    usage
+    exit 1
+    ;;
+  -*)
+    log_error "Unknown option: $1"
+    echo ""
+    usage
+    exit 1
+    ;;
+  *)
+    # Combine all arguments as the message
+    message="$*"
+    write_steering "$message"
+    log_info "Queued: ${BLUE}\"$message\"${NC}"
+    log_info "Will be processed at next tool call"
+    exit 0
+    ;;
+esac

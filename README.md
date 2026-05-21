@@ -144,10 +144,12 @@ The agent clones the repo, reads `install.md`, and handles all three components 
 # Clone
 git clone git@git.enflame.cn:skills/durablerequest.git /tmp/dr
 
-# Install skill package (Cursor)
-DIR=~/.cursor/skills/durable-request && mkdir -p "$DIR" && \
-  cp /tmp/dr/skill/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
+# Install skill package — copies to all three platform directories
+for DIR in ~/.cursor/skills/durable-request ~/.claude/skills/durable-request ~/.github/skills/durable-request; do
+  mkdir -p "$DIR" && \
+  cp /tmp/dr/.cursor/skills/durable-request/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,deep-sleep.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
   chmod +x "$DIR"/*.sh "$DIR/steer"
+done
 
 # Install steering runtime + Cursor extension (Cursor only)
 cd /tmp/dr && bash install-steering.sh && cd -
@@ -357,10 +359,13 @@ durable-request/
 ├── install.md                         # LLM-readable installation guide
 ├── install-steering.sh                # One-click Cursor steering installer
 ├── CHANGELOG.md                       # Version history
-├── skill/
+├── .claude/skills/durable-request/    # Claude Code skill package
+├── .cursor/skills/durable-request/    # Cursor skill package
+├── .github/skills/durable-request/    # GitHub Copilot skill package
 │   ├── SKILL.md                       # The skill (copy to install)
 │   ├── checkpoint.sh                  # CLI checkpoint tool (tmux split-pane)
 │   ├── checkpoint-ui.sh               # UI script (runs inside tmux pane)
+│   ├── deep-sleep.sh                  # Keep agent alive while user is away
 │   ├── steer                          # Steering CLI tool
 │   ├── steer-ui.sh                    # Steering tmux popup UI
 │   ├── steering-hook.sh               # preToolUse hook for steering injection

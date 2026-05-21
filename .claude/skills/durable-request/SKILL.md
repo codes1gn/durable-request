@@ -113,7 +113,7 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
         {"id": "A", "label": "<most likely next action>"},
         {"id": "B", "label": "<second most likely action>"},
         {"id": "C", "label": "<third most likely action>"},
-        {"id": "D", "label": ""}
+        {"id": "D", "label": "/deep-sleep"}
       ],
       "allow_multiple": false
     }
@@ -124,8 +124,10 @@ In the Cursor IDE (graphical editor), call `AskQuestion` with a **single questio
 Rules:
 
 - **Single question only** — never use multiple questions
-- **Exactly 4 options**: A, B, C are context-generated likely paths; D is empty for freeform
+- **Exactly 4 options**: A, B, C are context-generated likely paths; D is always `/deep-sleep`
 - Generate A/B/C based on context — predict the 3 most probable user intents
+- D is a fixed shortcut — when user selects it, invoke deep-sleep.sh immediately
+- Cursor IDE automatically appends a freeform text input after the last option — do NOT add an empty option manually
 - The `prompt` should be a 1-2 sentence summary of what was completed
 
 `AskQuestion` **blocks your turn without ending the request**. This is what makes the request "durable."
@@ -161,7 +163,8 @@ In VS Code with GitHub Copilot, call `#vscode/askQuestions` to present a Questio
 
 Rules:
 
-- **3 radio options + 1 text field (D)** — generate A/B/C based on context
+- **3 radio options + 1 deep-sleep option (D)** — generate A/B/C based on context; D is always `/deep-sleep`
+- The IDE auto-appends a freeform text field — do NOT add an empty option
 - The `label` in the radio field is the task summary
 - The Question Carousel **blocks the turn** until user responds
 
@@ -188,7 +191,7 @@ Rules:
 - Call this via the **Shell** tool
 - First argument is the prompt (1-2 sentence summary)
 - **Generate 3 context-specific options** (A, B, C) — predict most likely user intents
-- The script automatically appends an empty option (D) for freeform input
+- The script automatically appends D (`/deep-sleep`) — freeform input is handled by the UI
 - The script returns `[durable-request] User responded: <choice>` — use this to continue
 - If tmux is not available, the script auto-selects the first option
 
@@ -470,6 +473,75 @@ Steering is for mid-turn adjustments. You still MUST present a checkpoint when:
 Steering and checkpoints are complementary:
 - **Steering**: User redirects you while you're working
 - **Checkpoint**: You pause and ask what to do next
+
+## Deep Sleep (Optional)
+
+Deep sleep keeps the agent alive when the user is away for an extended period. Instead of the request timing out, the agent enters a low-power polling loop that prints periodic keep-alive messages.
+
+### When to Use Deep Sleep
+
+Use deep sleep when:
+- You've presented a checkpoint (AskQuestion) but suspect the user has stepped away
+- A long-running background task is still executing and you need to stay alive
+- The user explicitly says they'll be back later (e.g., "I'll be back in 30 minutes")
+
+Do NOT use deep sleep:
+- As a substitute for checkpoints — always checkpoint first
+- When the user is actively responding
+- In subagents (they should just return results)
+
+### How to Invoke Deep Sleep
+
+Call `deep-sleep.sh` via the Shell tool:
+
+```bash
+bash ~/.cursor/skills/durable-request/deep-sleep.sh [timeout_minutes]
+```
+
+- Default timeout: 120 minutes (2 hours)
+- The script prints `[deep-sleep] Still sleeping... X/Y min elapsed. I am working, keep waiting...` every 60 seconds
+- This keeps the Shell tool blocking and prevents the request from timing out
+
+### Wake Mechanism
+
+The script polls for a wake file. The user can wake the agent by:
+
+```bash
+touch ~/.cursor/skills/durable-request/.deep-sleep-wake
+```
+
+When woken (or when max timeout is reached), the script prints:
+
+```
+[deep-sleep] Wake signal received after X minute(s).
+[deep-sleep] Agent resuming — continue your work and present a checkpoint.
+```
+
+**After waking, you MUST present a new checkpoint to the user.** Deep sleep is a bridge, not a destination.
+
+### Deep Sleep Flow
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│  Checkpoint presented (AskQuestion / checkpoint.sh)          │
+│       │                                                      │
+│       ▼                                                      │
+│  User doesn't respond for a while / says "brb"              │
+│       │                                                      │
+│       ▼                                                      │
+│  Shell: deep-sleep.sh 120                                    │
+│       │                                                      │
+│       ├── every 60s: "[deep-sleep] Still sleeping..."        │
+│       │                                                      │
+│       ▼                                                      │
+│  Wake signal received OR timeout                             │
+│       │                                                      │
+│       ▼                                                      │
+│  Present new checkpoint to user                              │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## Integration with Other Skills
 
