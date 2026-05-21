@@ -1,0 +1,15 @@
+---
+description: "/enhance-me — Prompt enhancer router. Triggers on: enhance-me, enhance, /enhance-me."
+globs: 
+alwaysApply: false
+---
+
+# /enhance-me — Prompt Enhancer Router
+
+**Read and follow `.cursor/skills/enhance-me/SKILL.md` immediately.**
+
+When the user says "/enhance-me", "enhance-me", or includes `/enhance-me` anywhere in their message:
+
+1. Read `.cursor/skills/enhance-me/SKILL.md` (or `~/.cursor/skills/enhance-me/SKILL.md`)
+2. Follow the mandatory protocol exactly: extract task → route model → launch Task subagent → display enhanced prompt → execute it
+3. Do NOT respond conversationally without launching the subagent — that is a protocol violation

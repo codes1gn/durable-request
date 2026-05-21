@@ -6,7 +6,7 @@ This guide is designed to be read and executed by an LLM agent.
 
 Three components:
 
-1. **Skill package** (8 files, mirrored in `.claude/`, `.cursor/`, `.github/skills/durable-request/`) — teaches any AI agent to present interactive checkpoints, handle steering acknowledgements, manage the durable loop, and enter deep sleep when the user is away. Includes SKILL.md, checkpoint scripts, deep-sleep, steering tools, and todo-cleanup.
+1. **Skill package** (9 files, mirrored in `.claude/`, `.cursor/`, `.github/skills/durable-request/`) — teaches any AI agent to present interactive checkpoints, handle steering acknowledgements, manage the durable loop, and enter deep sleep when the user is away. Includes SKILL.md, checkpoint scripts, deep-sleep, reinforce (guardrail harness), steering tools, and todo-cleanup.
 2. **CLI checkpoint tool** (`checkpoint.sh` + `checkpoint-ui.sh`, Cursor CLI only) — enables true blocking interactive checkpoints in Cursor CLI via tmux split panes. Already included in the skill package above.
 3. **Steering runtime + IDE extension** (Cursor only) — mid-task instructions via CLI (`steer`), tmux popup, or Cursor IDE extension (status bar button + Ctrl+Shift+S). Installed by running `install-steering.sh`.
 
@@ -20,30 +20,44 @@ git clone git@git.enflame.cn:skills/durablerequest.git /tmp/durable-request-repo
 
 ## Step 2: Install Skill Package to Agent Skill Directories
 
-Copy all skill files into the relevant directories for every platform the user has. Create directories if they don't exist.
+Copy all skill files into the relevant directories. **Always install to the user's personal path (`~`) first** — this ensures the skill is available globally across all projects. Project-level installation is optional (for sharing with teammates via git).
 
-Install to **project-level** (current directory) and **personal** (`~`) for each platform:
+**Priority: User path (`~`) > Project path (`.`)**
 
-| Platform | Project path | Personal path |
-|----------|-------------|---------------|
-| Cursor | `.cursor/skills/durable-request/` | `~/.cursor/skills/durable-request/` |
-| Claude Code | `.claude/skills/durable-request/` | `~/.claude/skills/durable-request/` |
-| GitHub Copilot | `.github/copilot/skills/durable-request/` | `~/.github/copilot/skills/durable-request/` |
-| OpenAI Codex | `.codex/skills/durable-request/` | `~/.codex/skills/durable-request/` |
-| Google Gemini CLI | `.gemini/skills/durable-request/` | `~/.gemini/skills/durable-request/` |
-| Windsurf | `.windsurf/skills/durable-request/` | `~/.windsurf/skills/durable-request/` |
-| Aider | `.aider/skills/durable-request/` | `~/.aider/skills/durable-request/` |
-| Cody | `.cody/skills/durable-request/` | `~/.cody/skills/durable-request/` |
-| Continue | `.continue/skills/durable-request/` | `~/.continue/skills/durable-request/` |
+| Platform | Personal path (install here first) | Project path (optional) |
+|----------|-----------------------------------|------------------------|
+| Cursor | `~/.cursor/skills/durable-request/` | `.cursor/skills/durable-request/` |
+| Claude Code | `~/.claude/skills/durable-request/` | `.claude/skills/durable-request/` |
+| GitHub Copilot | `~/.github/skills/durable-request/` | `.github/copilot/skills/durable-request/` |
+| OpenAI Codex | `~/.codex/skills/durable-request/` | `.codex/skills/durable-request/` |
+| Google Gemini CLI | `~/.gemini/skills/durable-request/` | `.gemini/skills/durable-request/` |
+| Windsurf | `~/.windsurf/skills/durable-request/` | `.windsurf/skills/durable-request/` |
+| Aider | `~/.aider/skills/durable-request/` | `.aider/skills/durable-request/` |
+| Cody | `~/.cody/skills/durable-request/` | `.cody/skills/durable-request/` |
+| Continue | `~/.continue/skills/durable-request/` | `.continue/skills/durable-request/` |
 
-For **Cursor, Claude Code, and GitHub Copilot** (personal), run:
+For **Cursor, Claude Code, and GitHub Copilot** (personal — always do this), run:
 
 ```bash
 for DIR in ~/.cursor/skills/durable-request ~/.claude/skills/durable-request ~/.github/skills/durable-request; do
   mkdir -p "$DIR" && \
-  cp /tmp/durable-request-repo/.cursor/skills/durable-request/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,deep-sleep.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
+  cp /tmp/durable-request-repo/.cursor/skills/durable-request/{SKILL.md,checkpoint.sh,checkpoint-ui.sh,deep-sleep.sh,reinforce.sh,steer,steer-ui.sh,steering-hook.sh,todo-cleanup.sh} "$DIR/" && \
   chmod +x "$DIR"/*.sh "$DIR/steer"
 done
+```
+
+Also install the auxiliary skills (enhance-me, enhance-claude, enhance-gpt, deep-sleep) and rule files:
+
+```bash
+for SKILL in enhance-me enhance-claude enhance-gpt deep-sleep; do
+  for DIR in ~/.cursor/skills/$SKILL ~/.claude/skills/$SKILL ~/.github/skills/$SKILL; do
+    mkdir -p "$DIR" && \
+    cp /tmp/durable-request-repo/.cursor/skills/$SKILL/SKILL.md "$DIR/"
+  done
+done
+
+mkdir -p ~/.cursor/rules && \
+cp /tmp/durable-request-repo/.cursor/rules/{enhance-me.mdc,deep-sleep.mdc} ~/.cursor/rules/
 ```
 
 For **other platforms** (SKILL.md is sufficient — no shell scripts needed):

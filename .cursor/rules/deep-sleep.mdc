@@ -1,0 +1,24 @@
+---
+description: "/deep-sleep — Keep agent alive while user is away. Triggers on: deep-sleep, sleep, brb, away."
+globs: 
+alwaysApply: false
+---
+
+# /deep-sleep — Agent Keep-Alive Mode
+
+**Invoke `deep-sleep.sh` per the durable-request protocol.**
+
+When the user says "/deep-sleep", "deep-sleep", "brb", or indicates they'll be away:
+
+1. Read the Deep Sleep section in `~/.cursor/skills/durable-request/SKILL.md`
+2. Call `deep-sleep.sh` via the Shell tool:
+   ```bash
+   bash ~/.cursor/skills/durable-request/deep-sleep.sh [timeout_minutes]
+   ```
+3. Default timeout: 1440 minutes (24 hours)
+4. After waking, present a new checkpoint to the user
+
+The user can wake the agent by running:
+```bash
+touch ~/.cursor/skills/durable-request/.deep-sleep-wake
+```
