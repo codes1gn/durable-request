@@ -1,0 +1,77 @@
+<context>
+You are a senior backend engineer building API infrastructure for a high-traffic service
+(10,000+ requests per second). Rate limiting is critical: it must be accurate under burst
+traffic, cheap per request, and observable via standard HTTP headers.
+</context>
+
+<task>
+Build an in-memory rate limiter using a timestamp-based sliding window algorithm, exposed
+as a configurable Express middleware factory with per-endpoint namespaces.
+</task>
+
+<instructions>
+1. Define TypeScript types: `RateLimitConfig` (windowMs, maxRequests, namespace, optional keyGenerator, optional skip), `RateLimitStore` entry shape (timestamps array), and middleware return type.
+2. Implement the sliding window: store request timestamps per key, prune timestamps older than windowMs on each check, allow request only if count < maxRequests.
+3. Create a middleware factory `createRateLimiter(config)` that returns Express `(req, res, next)` middleware; support a `skip(req)` predicate to bypass limiting for health checks.
+4. On limit exceeded: respond HTTP 429 with JSON body `{ error: "Too Many Requests" }`, set `Retry-After` (seconds until window slot opens), and `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` headers.
+5. Implement key extraction: default to client IP (honor `X-Forwarded-For` first hop when behind a proxy), with optional API-key header (`X-API-Key`) and custom `keyGenerator(req)` override. Namespace keys as `${namespace}:${key}` for endpoint isolation.
+6. Add periodic cleanup: `pruneAll()` removes stale entries across all keys; run on an interval with `setInterval` and call `timer.unref()` so the timer does not keep the process alive. Validate config at construction (positive windowMs, positive maxRequests).
+7. Export the factory, a `peek(key)` method that checks count without consuming a slot, `reset(key)` for tests, and `dispose()` to clear the interval.
+</instructions>
+
+<examples>
+<example name="middleware-usage">
+```typescript
+import express from "express";
+import { createRateLimiter } from "./rateLimiter";
+
+const app = express();
+
+app.use("/api", createRateLimiter({
+  windowMs: 60_000,
+  maxRequests: 100,
+  namespace: "api-general",
+}));
+
+app.get("/api/data", (req, res) => res.json({ ok: true }));
+```
+</example>
+
+<example name="429-response">
+Request #101 within the same window from the same IP:
+- Status: 429
+- Headers: Retry-After: 42, X-RateLimit-Limit: 100, X-RateLimit-Remaining: 0, X-RateLimit-Reset: 1716300000
+- Body: { "error": "Too Many Requests" }
+</example>
+</examples>
+
+<output_format>
+- `rateLimiter.ts` — core implementation and middleware factory
+- `rateLimiter.test.ts` — unit tests with injectable clock (fake timers)
+- Typed exports for config, store interface, and middleware
+</output_format>
+
+<constraints>
+- In-memory store only (no Redis or external libs for the limiter itself)
+- Sliding window must be timestamp-based, not fixed bucket counters
+- No external rate-limiting libraries (express-rate-limit, etc.)
+- Must work as standard Express middleware (`req`, `res`, `next`)
+- Periodic cleanup must run to prevent unbounded memory growth
+- Document thread-safety caveat: safe for single Node.js process; not for multi-process without external store
+</constraints>
+
+<success_criteria>
+- Sliding window correctly allows bursts up to maxRequests then blocks until oldest timestamp expires
+- 429 response includes Retry-After and full X-RateLimit-* header set
+- X-Forwarded-For is parsed for the leftmost client IP when present
+- API key from X-API-Key header can be used as rate-limit key
+- Namespace isolates limits per endpoint group (same IP, different namespaces = separate counters)
+- skip(req) bypasses limiting when it returns true
+- Custom keyGenerator overrides default IP extraction
+- peek() returns current count without incrementing
+- Config validation throws on invalid windowMs or maxRequests at construction
+- pruneAll() removes entries with no timestamps in the current window
+- setInterval timer uses unref() so tests and shutdown are not blocked
+- dispose() clears interval and store
+- At least 12 test cases including window rollover, namespace isolation, forwarded-for parsing, and 429 headers
+</success_criteria>

@@ -1,0 +1,90 @@
+<context>
+You are a senior TypeScript developer building reusable infrastructure utilities for
+production Node.js services. This cache will back session lookups, config snapshots, and
+computed results — correctness (no stale reads) and bounded memory are non-negotiable.
+</context>
+
+<task>
+Implement a generic, type-safe in-memory cache with per-key TTL, LRU eviction when at
+capacity, lazy and periodic expiration, event hooks, and hit/miss statistics.
+</task>
+
+<instructions>
+1. Define a `Cache<T>` interface: `get(key)`, `set(key, value, ttlMs?)`, `has(key)`, `delete(key)`, `clear()`, `size`, `stats`, `on(event, handler)`, `off(event, handler)`, `dispose()`.
+2. Support per-key TTL override on `set()`; fall back to a default TTL from constructor config. Store expiry timestamp per entry.
+3. Implement lazy expiration on `get()`/`has()` (delete and emit if expired) plus periodic background sweep via `setInterval` with `timer.unref()`.
+4. Enforce `maxSize` with LRU eviction: on insert when at capacity, evict least-recently-used key (use Map insertion order — delete and re-insert on access to maintain LRU).
+5. Track statistics: `hits`, `misses`, `evictions`, `expirations` — expose via read-only `stats` getter; reset stats optionally.
+6. Emit typed events: `set`, `get-hit`, `get-miss`, `delete`, `evict`, `expire` — each payload includes key and relevant metadata (value on set, reason on evict/expire).
+7. Export `createCache<T>(config)` factory, `CacheConfig` type, event name union, and validate config at construction (positive TTL, positive maxSize, positive cleanup interval).
+</instructions>
+
+<examples>
+<example name="basic-usage">
+```typescript
+import { createCache } from "./ttlCache";
+
+const userCache = createCache<User>({
+  defaultTtlMs: 60_000,
+  maxSize: 500,
+  cleanupIntervalMs: 30_000,
+});
+
+userCache.set("user:42", { id: 42, name: "Ada" });
+userCache.set("user:99", { id: 99, name: "Grace" }, 5_000); // 5s override
+
+const user = userCache.get("user:42"); // hit — refreshes LRU position
+const missing = userCache.get("user:0");  // miss — returns undefined
+```
+</example>
+
+<example name="event-hooks">
+```typescript
+userCache.on("evict", ({ key, reason }) => {
+  console.log(`Evicted ${key}: ${reason}`); // reason: "lru" | "expired"
+});
+
+userCache.on("expire", ({ key }) => {
+  metrics.increment("cache.expired");
+});
+
+userCache.on("get-miss", ({ key }) => {
+  // trigger backfill from origin
+});
+```
+</example>
+</examples>
+
+<output_format>
+- `ttlCache.ts` — Cache interface, implementation, factory, event types
+- `ttlCache.test.ts` — tests with injectable `now()` clock and fake timers
+- Full generic typing: `Cache<T>`, `CacheConfig`, `CacheEvent`, `CacheStats`
+</output_format>
+
+<constraints>
+- No external dependencies (no node-cache, lru-cache, etc.)
+- Generic over value type `T` — no `any` in public API
+- `dispose()` must clear interval, remove all listeners, and empty the store
+- Per-key TTL on `set()` overrides default; expired entries must never be returned from `get()`
+- Thread-safe for single Node.js process only (document limitation)
+- Injectable `now: () => number` in config for deterministic tests
+</constraints>
+
+<success_criteria>
+- `Cache<T>` interface is exported and fully typed
+- Default TTL applies when per-key TTL is omitted
+- Per-key TTL override on `set(key, value, ttlMs)` is honored
+- Lazy expiration removes stale entries on `get()` and `has()`
+- Periodic cleanup sweep removes expired entries without a read
+- LRU evicts oldest-accessed key when `maxSize` is exceeded
+- `get-hit` and `get-miss` events fire with correct key payloads
+- `evict` event includes reason (`lru` or `expired`)
+- `expire` event fires on background sweep deletion
+- Statistics counters increment correctly for hits, misses, evictions, expirations
+- `dispose()` stops timer, clears listeners, and empties cache
+- `timer.unref()` prevents interval from blocking process exit
+- Config validation rejects zero/negative TTL, maxSize, or cleanup interval
+- `has()` returns false for expired keys without returning the value
+- `clear()` resets store and does not leak listeners
+- At least 15 test cases including LRU order, TTL override, clock injection, and event emission
+</success_criteria>

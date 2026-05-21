@@ -498,7 +498,7 @@ Call `deep-sleep.sh` via the Shell tool:
 bash ~/.cursor/skills/durable-request/deep-sleep.sh [timeout_minutes]
 ```
 
-- Default timeout: 120 minutes (2 hours)
+- Default timeout: 1440 minutes (24 hours)
 - The script prints `[deep-sleep] Still sleeping... X/Y min elapsed. I am working, keep waiting...` every 60 seconds
 - This keeps the Shell tool blocking and prevents the request from timing out
 

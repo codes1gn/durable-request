@@ -1,0 +1,65 @@
+<context>
+You are a senior TypeScript developer building production authentication utilities.
+This login validator sits on a security-critical path: invalid input must be rejected
+before any credential lookup, and every failure mode must be explicit and typed.
+</context>
+
+<task>
+Implement a pure TypeScript login validator function that validates email and password
+fields for a sign-in form, returning all validation errors in a single pass.
+</task>
+
+<instructions>
+1. Define a `LoginInput` type with `email: string` and `password: string` (allow null/undefined at the boundary and normalize).
+2. Define a discriminated union `ValidationResult`: `{ valid: true }` or `{ valid: false; errors: ValidationError[] }`.
+3. Define `ValidationError` with a string literal `code` union (e.g. INVALID_EMAIL, EMAIL_TOO_LONG, PASSWORD_TOO_SHORT, PASSWORD_TOO_LONG, PASSWORD_MISSING_UPPERCASE, etc.) and a human-readable `message`.
+4. Validate email: trim whitespace, reject empty, enforce max length 254 (RFC 5321), use a practical regex for format (not full RFC 5322).
+5. Validate password: enforce configurable min length (default 8), max length 128, and optional policy flags for uppercase, lowercase, digit, and special character requirements.
+6. Return ALL applicable errors at once (do not short-circuit after the first failure).
+7. Export the function, types, error codes, and a `PasswordPolicy` options interface. Keep the validator a pure function with no side effects.
+</instructions>
+
+<examples>
+<example name="valid-input">
+Input:  { email: "  user@example.com  ", password: "SecureP@ss1" }
+Output: { valid: true }
+</example>
+
+<example name="multiple-errors">
+Input:  { email: "", password: "abc" }
+Output: {
+  valid: false,
+  errors: [
+    { code: "INVALID_EMAIL", message: "Email is required" },
+    { code: "PASSWORD_TOO_SHORT", message: "Password must be at least 8 characters" },
+    { code: "PASSWORD_MISSING_UPPERCASE", message: "Password must contain an uppercase letter" },
+    { code: "PASSWORD_MISSING_DIGIT", message: "Password must contain a digit" }
+  ]
+}
+</example>
+</examples>
+
+<output_format>
+- Single file: `loginValidator.ts`
+- Include JSDoc on the main export
+- Include unit tests in `loginValidator.test.ts` using a standard test runner (vitest or jest)
+- No external validation libraries
+</output_format>
+
+<constraints>
+- Pure function only: no I/O, no logging, no global state
+- Collect and return all errors in one call (never stop at first error)
+- Use a practical email regex (e.g. /^[^\s@]+@[^\s@]+\.[^\s@]+$/) — do not implement full RFC 5322
+- No external dependencies for validation logic
+- Handle null and undefined inputs for email/password gracefully (treat as empty string or return explicit errors)
+- Trim leading/trailing whitespace on email before validation
+</constraints>
+
+<success_criteria>
+- Discriminated union result type is correctly narrowed by TypeScript consumers
+- Email over 254 characters returns EMAIL_TOO_LONG
+- Password policy is configurable via options object with sensible defaults
+- Null/undefined inputs do not throw — they produce validation errors
+- At least 10 test cases covering valid input, empty fields, format errors, length limits, and policy violations
+- All error codes are exported as a const object or string union for downstream i18n
+</success_criteria>

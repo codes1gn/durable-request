@@ -18,7 +18,7 @@
 #
 # Defaults:
 #   - Keep-alive interval: 60 seconds
-#   - Max sleep: 120 minutes (2 hours)
+#   - Max sleep: 1440 minutes (24 hours)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 set -euo pipefail
@@ -27,7 +27,7 @@ SKILL_DIR="$(cd "$(dirname "$0")" && pwd)"
 WAKE_FILE="$SKILL_DIR/.deep-sleep-wake"
 SLEEP_LOG="$SKILL_DIR/.deep-sleep-log"
 
-TIMEOUT_MINUTES="${1:-120}"
+TIMEOUT_MINUTES="${1:-1440}"
 POLL_SECONDS=5
 KEEPALIVE_SECONDS=60
 MAX_POLLS=$(( TIMEOUT_MINUTES * 60 / POLL_SECONDS ))
