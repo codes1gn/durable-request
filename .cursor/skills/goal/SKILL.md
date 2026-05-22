@@ -101,8 +101,7 @@ Task(
 **Subagent returns "YES: ..."**
 1. Run `goal-manage.sh done` via Shell
 2. Report the achievement to the user
-3. If durable-request is active → invoke `/deep-sleep` to keep session alive
-4. If standalone → end turn normally
+3. End turn normally
 
 **Subagent returns "NO: ..."**
 1. Parse the reason — it tells you what remains
@@ -172,24 +171,6 @@ When the condition has a natural test command, always use `--test`:
 /goal "build succeeds" --test "npm run build"
 /goal "no lint errors" --test "eslint src/ --quiet"
 ```
-
-## Integration with durable-request
-
-When both /goal and durable-request are installed:
-
-- **Goal active:** auto-continuation via stop hook + subagent evaluation.
-  durable-request checkpoints are **suppressed** — do not call AskQuestion
-  or checkpoint.sh while pursuing a goal.
-
-- **Goal achieved:** invoke `/deep-sleep` to keep the session alive.
-  The user is likely away (that's why they set a goal). When they return
-  and wake the session, they'll see the completion report.
-
-- **Goal budget-limited:** same as achieved — `/deep-sleep` after
-  the wrap-up summary.
-
-- **Goal cleared by user:** return to normal durable-request behavior
-  (checkpoint at next stopping point).
 
 ## State File
 

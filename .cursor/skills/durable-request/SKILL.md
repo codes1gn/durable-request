@@ -549,6 +549,42 @@ This skill does NOT override task-specific loop behavior. Skills with their own 
 
 **Priority:** Task-specific loops > durable-request (at task boundaries only)
 
+### Integration with /goal
+
+When `/goal` is active (goal.json exists with `status: "pursuing"`):
+
+1. **Suppress durable-request checkpoints** — do NOT call AskQuestion or
+   checkpoint.sh while the goal is being pursued. The /goal stop hook
+   handles auto-continuation via `followup_message`.
+
+2. **When goal completes (achieved or budget-limited):**
+   - Report the goal outcome to the user
+   - Invoke `/deep-sleep` to keep the session alive (user is likely away
+     since they set an autonomous goal)
+   - When user wakes from deep sleep, present a normal checkpoint
+
+3. **When goal is cleared by user:**
+   - Return to normal durable-request behavior immediately
+   - Present a checkpoint at the next stopping point
+
+```
+/durable-request /goal "all tests pass" --test "npm test"
+
+  ┌─────────────── /goal phase ──────────────────────────┐
+  │ Agent works autonomously                              │
+  │ Subagent evaluates → continue or done                 │
+  │ Stop hook auto-continues if turn ends early           │
+  │ (no durable-request checkpoints during this phase)    │
+  └───────────────────────┬──────────────────────────────┘
+                          │ goal achieved / budget hit
+                          ▼
+  ┌─────────── durable-request phase ────────────────────┐
+  │ Report goal outcome                                   │
+  │ Call /deep-sleep (user likely away)                    │
+  │ Wake → present checkpoint → user picks next action    │
+  └──────────────────────────────────────────────────────┘
+```
+
 ## What This Skill Is NOT
 
 - NOT a gate that blocks progress

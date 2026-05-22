@@ -79,19 +79,13 @@ Task(
 )
 ```
 
-**YES** → `goal-manage.sh done` → if durable-request active → `/deep-sleep`
+**YES** → `goal-manage.sh done` → report achievement, end turn
 **NO** → continue working, incorporate the reason
 
 ### When to Evaluate
 
 Evaluate after completing a logical unit of work or seeing new validation
 results. Do NOT evaluate after every micro-action.
-
-## Integration with durable-request
-
-- **Goal active:** suppress durable-request checkpoints
-- **Goal achieved/budget-limited:** invoke `/deep-sleep` (user likely away)
-- **Goal cleared:** return to normal durable-request behavior
 
 ## Writing Good Conditions
 
