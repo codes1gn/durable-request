@@ -1,7 +1,8 @@
 ---
 name: enhance-gpt
-author: durable-request
 description: Enhance prompts for OpenAI GPT models and Codex. Applies primacy-optimized instruction placement, conversational structure, delimiters, and GPT/Codex-specific best practices.
+deprecated: true
+moved_to: https://github.com/SyntaxArchmage/enhance-me
 ---
 
 # /enhance-gpt — GPT/Codex Prompt Enhancer

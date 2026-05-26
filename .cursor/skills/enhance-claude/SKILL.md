@@ -1,7 +1,8 @@
 ---
 name: enhance-claude
-author: durable-request
 description: Enhance prompts for Claude models (Opus, Sonnet, Haiku). Applies XML structuring, recency-optimized instruction placement, few-shot patterns, and Claude-specific best practices.
+deprecated: true
+moved_to: https://github.com/SyntaxArchmage/enhance-me
 ---
 
 # /enhance-claude — Claude Prompt Enhancer

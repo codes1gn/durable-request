@@ -1,7 +1,8 @@
 ---
 name: enhance-me
-author: durable-request
 description: "ACTION-FORCING prompt enhancer router. Detects /enhance-me → launches Task subagent → displays enhanced prompt → executes it. Reading this skill without launching a subagent is a protocol violation."
+deprecated: true
+moved_to: https://github.com/SyntaxArchmage/enhance-me
 ---
 
 # /enhance-me — Prompt Enhancer Router
